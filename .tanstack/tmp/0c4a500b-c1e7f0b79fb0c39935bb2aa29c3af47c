@@ -1,0 +1,12 @@
+import { authQueryOptions } from "@/lib/provider";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+
+export const Route = createFileRoute('/authenticated')({
+  beforeLoad: async ({ context, location }) => {
+    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+    if (!user) {
+      throw redirect({ to: "/login", search: { redirect: location.href } });
+    }
+  },
+  component: Outlet,
+});

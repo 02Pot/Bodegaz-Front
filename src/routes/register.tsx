@@ -2,13 +2,15 @@ import { register, sendOtp, verifyOtp } from '@/lib/api/auth';
 import { authQueryOptions } from '@/lib/provider';
 import type { RegisterRequest, Step } from '@/types';
 import { validateEmail } from '@/utils/email';
-import { Box, Button, Field, Flex, Heading, Input, PinInput, RadioCard, Stack, Steps, Text } from '@chakra-ui/react';
+import { Box, Button, Field, Flex, Heading, Input, InputGroup, PinInput, RadioCard, Stack, Steps, Text } from '@chakra-ui/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { LuUser } from 'react-icons/lu';
+import { MdEmail } from 'react-icons/md';
 
 export const Route = createFileRoute('/register')({
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(authQueryOptions);
+    const user = await context.queryClient.query(authQueryOptions);
     if (user) throw redirect({ to: "/" });
   },
   component: Register,
@@ -38,7 +40,7 @@ function Register() {
   const goNext = (next: Step) => {
     setError("");
     setStep(next);
-  };
+  }
 
   const handleSendOtp = async () => {
     if (!data.email || !data.name) {
@@ -106,8 +108,7 @@ function Register() {
     }
     setLoading(true);
     try {
-      const res = await register(data.email,data.contactNumber,data.password,data.userType)
-      if (!res.success) throw new Error();
+      await register(data.email,data.contactNumber,data.password,data.userType)
       navigate({ to: "/" });
     } catch {
       setError("Registration failed. Try again.");
@@ -135,27 +136,31 @@ function Register() {
           <Heading size="md">Create your account</Heading>
           <Field.Root>
             <Field.Label>Username</Field.Label>
+            <InputGroup startElement={<LuUser/>}>
             <Input
               value={data.name}
               onChange={(e) => update({ name: e.target.value })}
               placeholder="example"
             />
+            </InputGroup>
           </Field.Root>
           <Field.Root>
             <Field.Label>Email</Field.Label>
+            <InputGroup startElement={<MdEmail/>}>
             <Input
               type="email"
               value={data.email}
               onChange={(e) => update({ email: e.target.value })}
               placeholder="you@example.com"
             />
+            </InputGroup>
           </Field.Root>
           {error && <Text color="red.500" fontSize="sm">{error}</Text>}
           <Flex justifyContent='space-around'>
             <Button variant="outline" onClick={() => navigate({ to: "/login" })}>
               Go to login
             </Button>
-            <Button onClick={handleSendOtp} loading={loading} colorPalette="blue">
+            <Button onClick={handleSendOtp} loading={loading}>
               Continue
             </Button>
           </Flex>
@@ -180,7 +185,7 @@ function Register() {
             </PinInput.Control>
           </PinInput.Root>
           {error && <Text color="red.500" fontSize="sm">{error}</Text>}
-          <Button onClick={handleVerifyOtp} loading={loading} colorPalette="blue">
+          <Button onClick={handleVerifyOtp} loading={loading} >
             Verify
           </Button>
           <Button variant="ghost" size="sm" onClick={handleSendOtp}>
@@ -239,12 +244,12 @@ function Register() {
               type="password"
               value={data.password}
               onChange={(e) => update({ password: e.target.value })}
-              placeholder="At least 8 characters"
+              placeholder="*******"
             />
           </Field.Root>
           {error && <Text color="red.500" fontSize="sm">{error}</Text>}
 
-          <Button onClick={handleSubmit} loading={loading} colorPalette="blue">
+          <Button onClick={handleSubmit} loading={loading}>
             Create account
           </Button>
         </Stack>

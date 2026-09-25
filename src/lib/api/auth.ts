@@ -16,6 +16,7 @@ export const authcheck = async (): Promise<User | null> => {
     if (!data || typeof data !== "object" || !("email" in data)) return null;
     return data;
 };
+
 export const logout = async (): Promise<void> => {
     await api.post(`/auth/logout`);
 };

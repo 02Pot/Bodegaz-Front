@@ -27,3 +27,4 @@ export interface AuthTokens {
 export type UserType = "SELLER_ROLE" | "BUYER_ROLE" | "";
 export type AuthAction = "OTP_SENT" | "RESUME_ONBOARDING" | "LOGIN_REQUIRED";
 export type Step = "info" | "otp" | "information";
+

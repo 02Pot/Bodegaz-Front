@@ -44,13 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { mutateAsync: loginAsync, isPending: isLoggingIn } = useMutation({
         mutationFn: loginRequest,
+        onMutate: () => setLoginError(null),
         onSuccess: async () => {
-        setLoginError(null);
-        // refetch /auth/me so the cache holds a real User
-        await queryClient.invalidateQueries({ queryKey: authQueryOptions.queryKey });
+            setLoginError(null);
+            await queryClient.invalidateQueries({ queryKey: authQueryOptions.queryKey });
         },
         onError: (error: AxiosError<{ message?: string }>) => {
-        setLoginError(error.response?.data?.message ?? "Login failed");
+            setLoginError(error.response?.data?.message ?? "Login failed");
         },
     });
     

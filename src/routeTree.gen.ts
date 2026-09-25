@@ -13,7 +13,11 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
+import { Route as AuthenticatedLeaseAgreeRouteImport } from './routes/_authenticated/lease-agree'
+import { Route as AuthenticatedMyRentalRouteImport } from './routes/_authenticated/my-rental'
+import { Route as AuthenticatedSavedRentalRouteImport } from './routes/_authenticated/saved-rental'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSuppInqRouteImport } from './routes/_authenticated/supp-inq'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -34,9 +38,30 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const AuthenticatedLeaseAgreeRoute = AuthenticatedLeaseAgreeRouteImport.update({
+  id: '/lease-agree',
+  path: '/lease-agree',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMyRentalRoute = AuthenticatedMyRentalRouteImport.update({
+  id: '/my-rental',
+  path: '/my-rental',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSavedRentalRoute =
+  AuthenticatedSavedRentalRouteImport.update({
+    id: '/saved-rental',
+    path: '/saved-rental',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSuppInqRoute = AuthenticatedSuppInqRouteImport.update({
+  id: '/supp-inq',
+  path: '/supp-inq',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -44,12 +69,20 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/about': typeof AuthenticatedAboutRoute
+  '/lease-agree': typeof AuthenticatedLeaseAgreeRoute
+  '/my-rental': typeof AuthenticatedMyRentalRoute
+  '/saved-rental': typeof AuthenticatedSavedRentalRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/supp-inq': typeof AuthenticatedSuppInqRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/about': typeof AuthenticatedAboutRoute
+  '/lease-agree': typeof AuthenticatedLeaseAgreeRoute
+  '/my-rental': typeof AuthenticatedMyRentalRoute
+  '/saved-rental': typeof AuthenticatedSavedRentalRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/supp-inq': typeof AuthenticatedSuppInqRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -57,20 +90,44 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/lease-agree': typeof AuthenticatedLeaseAgreeRoute
+  '/_authenticated/my-rental': typeof AuthenticatedMyRentalRoute
+  '/_authenticated/saved-rental': typeof AuthenticatedSavedRentalRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/supp-inq': typeof AuthenticatedSuppInqRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/about'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/lease-agree'
+    | '/my-rental'
+    | '/saved-rental'
+    | '/settings'
+    | '/supp-inq'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/register' | '/about' | '/'
+  to:
+    | '/login'
+    | '/register'
+    | '/lease-agree'
+    | '/my-rental'
+    | '/saved-rental'
+    | '/settings'
+    | '/supp-inq'
+    | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/register'
-    | '/_authenticated/about'
+    | '/_authenticated/lease-agree'
+    | '/_authenticated/my-rental'
+    | '/_authenticated/saved-rental'
+    | '/_authenticated/settings'
+    | '/_authenticated/supp-inq'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -110,23 +167,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/about': {
-      id: '/_authenticated/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AuthenticatedAboutRouteImport
+    '/_authenticated/lease-agree': {
+      id: '/_authenticated/lease-agree'
+      path: '/lease-agree'
+      fullPath: '/lease-agree'
+      preLoaderRoute: typeof AuthenticatedLeaseAgreeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/my-rental': {
+      id: '/_authenticated/my-rental'
+      path: '/my-rental'
+      fullPath: '/my-rental'
+      preLoaderRoute: typeof AuthenticatedMyRentalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/saved-rental': {
+      id: '/_authenticated/saved-rental'
+      path: '/saved-rental'
+      fullPath: '/saved-rental'
+      preLoaderRoute: typeof AuthenticatedSavedRentalRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/supp-inq': {
+      id: '/_authenticated/supp-inq'
+      path: '/supp-inq'
+      fullPath: '/supp-inq'
+      preLoaderRoute: typeof AuthenticatedSuppInqRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedLeaseAgreeRoute: typeof AuthenticatedLeaseAgreeRoute
+  AuthenticatedMyRentalRoute: typeof AuthenticatedMyRentalRoute
+  AuthenticatedSavedRentalRoute: typeof AuthenticatedSavedRentalRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSuppInqRoute: typeof AuthenticatedSuppInqRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedLeaseAgreeRoute: AuthenticatedLeaseAgreeRoute,
+  AuthenticatedMyRentalRoute: AuthenticatedMyRentalRoute,
+  AuthenticatedSavedRentalRoute: AuthenticatedSavedRentalRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSuppInqRoute: AuthenticatedSuppInqRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

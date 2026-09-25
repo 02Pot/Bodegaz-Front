@@ -1,3 +1,4 @@
+import { Box, Text } from '@chakra-ui/react'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/')({
@@ -5,5 +6,11 @@ export const Route = createFileRoute('/_authenticated/')({
 })
 
 function RouteComponent() {
-  return <div>Hello ""!</div>
+  return(
+    <>
+      <Box>
+        <Text>Test</Text>
+      </Box>
+    </>
+  )
 }

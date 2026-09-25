@@ -1,4 +1,3 @@
-import type { AuthTokens } from "@/types";
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import axios from "axios";
 
@@ -9,25 +8,7 @@ export const api: AxiosInstance = axios.create({
     withCredentials: true,
 });
 
-let accessToken: string | null = localStorage.getItem("accessToken");
-
-export const setAccessToken = (token: string | null) => {
-    accessToken = token;
-    if (token) {
-        localStorage.setItem("accessToken", token);
-    } else {
-        localStorage.removeItem("accessToken");
-    }
-};
-
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-});
-
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
 
 api.interceptors.response.use(
     (response) => response,
@@ -37,32 +18,24 @@ api.interceptors.response.use(
         };
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-        try {
+            originalRequest._retry = true;
+
             if (!refreshPromise) {
-            refreshPromise = api
-                .post<AuthTokens>("/auth/refresh")
-                .then((res) => {
-                setAccessToken(res.data.accessToken);
-                return res.data.accessToken;
-                })
-                .catch(() => {
-                setAccessToken(null);
-                return null;
-                })
-                .finally(() => {
-                refreshPromise = null;
-                });
+                refreshPromise = api
+                    .post("/auth/refresh-token")
+                    .then(() => true)
+                    .catch(() => false)
+                    .finally(() => {
+                        refreshPromise = null;
+                    });
             }
-            const newToken = await refreshPromise;
-            if (newToken) {
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return api(originalRequest);
+
+            const refreshed = await refreshPromise;
+            if (refreshed) {
+                return api(originalRequest);
             }
-        } catch {
-            setAccessToken(null);
         }
-        }
+
         return Promise.reject(error);
     }
 );

@@ -1,8 +1,10 @@
 export interface User {
     id: string
     email: string
-    username: string
+    name: string
     userType: UserType
+    isVerified: true
+    isRegistered: true
 }
 
 export interface LoginRequest {
@@ -22,6 +24,25 @@ export interface RegisterRequest {
 export interface AuthTokens {
     accessToken: string;
     refreshToken?: string;
+}
+
+export interface WarehouseInterface{
+    id: string,
+    warehouseName: string,
+    warehouseCapacity: string,
+    viewCount: string,
+    address: WarehouseAddress,
+    createAt: Date,
+}
+
+export interface WarehouseAddress{
+    id: string,
+    addressLine1: string,
+    addressLine2: string,
+    city: string,
+    stateProvince: string,
+    country: string,
+    postalCode: string,
 }
 
 export type UserType = "SELLER_ROLE" | "BUYER_ROLE" | "";

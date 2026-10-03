@@ -5,7 +5,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { authcheck, login as loginRequest, logout as logoutRequest } from "./api/auth";
 
 interface AuthContextValue {
-    user: User | null | undefined;
+    currentUser: User | null | undefined;
     isLoading: boolean;
     isAuthenticated: boolean;
     login: (payload: LoginRequest) => Promise<void>;
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const queryClient = useQueryClient();
     const [loginError, setLoginError] = useState<string | null>(null);
 
-    const { data: user, isLoading } = useQuery(authQueryOptions);
+    const { data: currentUser, isLoading } = useQuery(authQueryOptions);
 
     const { mutateAsync: loginAsync, isPending: isLoggingIn } = useMutation({
         mutationFn: loginRequest,
@@ -64,15 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = useMemo<AuthContextValue>(
         () => ({
-        user,
+        currentUser,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!currentUser,
         login: async (payload) => { await loginAsync(payload); },
         logout: async () => { await logoutAsync(); },
         loginError,
         isLoggingIn,
         }),
-        [user, isLoading, loginAsync, logoutAsync, loginError, isLoggingIn]
+        [currentUser, isLoading, loginAsync, logoutAsync, loginError, isLoggingIn]
     );
 
     return (

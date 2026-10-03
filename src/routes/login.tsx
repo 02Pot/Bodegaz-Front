@@ -7,8 +7,8 @@ import { LuEye, LuUser } from 'react-icons/lu';
 
 export const Route = createFileRoute('/login')({
     beforeLoad: async ({ context }) => {
-        const user = await context.queryClient.query(authQueryOptions);
-        if (user) throw redirect({ to: "/"});
+        const currentUser = await context.queryClient.query(authQueryOptions);
+        if (currentUser) throw redirect({ to: "/"});
     },
     component: Login,
 })
@@ -19,7 +19,6 @@ function Login() {
     const [data, setData] = useState<LoginRequest>({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
 
     const update = (fields: Partial<LoginRequest>) =>
         setData((prev) => ({ ...prev, ...fields }));

@@ -10,8 +10,8 @@ import { MdEmail } from 'react-icons/md';
 
 export const Route = createFileRoute('/register')({
   beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.query(authQueryOptions);
-    if (user) throw redirect({ to: "/" });
+    const currentUser = await context.queryClient.query(authQueryOptions);
+    if (currentUser) throw redirect({ to: "/" });
   },
   component: Register,
 })

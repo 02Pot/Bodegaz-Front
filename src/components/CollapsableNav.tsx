@@ -1,7 +1,16 @@
 import { Box, Collapsible, Flex, Text } from "@chakra-ui/react"
-import { useState, type ReactNode } from "react"
+import { isValidElement, useState, type ReactNode } from "react"
 import { LuChevronUp } from "react-icons/lu"
 import { Tooltip } from "./Ui-kit/Tooltip"
+
+type NavItem = {
+    isActive: boolean
+    onClick?: VoidFunction
+    label: string
+    count?: number
+    rightElement?: ReactNode
+    elementContent?: string
+}
 
 const CollapSibleNavs = ({
     title,
@@ -14,19 +23,12 @@ const CollapSibleNavs = ({
     title: string
     icon: ReactNode
     children?: ReactNode
-    items: {
-        isActive: boolean
-        onClick?: VoidFunction
-        label: string
-        count?: number
-        rightElement?: ReactNode
-        elementContent?: string
-    }[]
+    items?: NavItem[] | ReactNode
 }) => {
     const [open, setOpen] = useState<boolean>(defaultOpen)
 
     return (
-        <Box p={{ base: '1rem', md: '20px' }} bg="#fcfcfc" borderRadius="10px" boxShadow="0px 1px 2px -1px rgba(0,0,0,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1)">
+        <Box p={{ base: '1rem', md: '20px' }} bg="#f3f3f3" borderRadius="10px" boxShadow="0px 1px 2px -1px rgba(0,0,0,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1)">
             <Collapsible.Root open={open} onOpenChange={(e) => setOpen(e.open)} lazyMount>
                 <Collapsible.Trigger w="100%" cursor="pointer">
                     <Flex alignItems="center" justifyContent="space-between" w="100%">
@@ -49,8 +51,10 @@ const CollapSibleNavs = ({
                 </Collapsible.Trigger>
                 <Collapsible.Content>
                     <Flex flexDir="column" mt="10px" gap="4px">
-                        {items.map((e, i) => {
-                            return (
+                        {isValidElement(items) ? (
+                            items
+                        ) : Array.isArray(items) ? (
+                            items.map((e, i) => (
                                 <Box
                                     cursor="pointer"
                                     onClick={() => e.onClick?.()}
@@ -65,7 +69,7 @@ const CollapSibleNavs = ({
                                         <Text
                                             flex="1"
                                             fontSize="16px"
-                                            fontWeight={`${e.isActive ? 'medium' : 'regular'}`}
+                                            fontWeight={e.isActive ? 'medium' : 'regular'}
                                             letterSpacing="-0.4px"
                                             color={e.isActive ? '#2C2C7C' : '#4A5565'}
                                             overflow="hidden"
@@ -95,8 +99,8 @@ const CollapSibleNavs = ({
                                         ) : null}
                                     </Flex>
                                 </Box>
-                            )
-                        })}
+                            ))
+                        ) : null}
                     </Flex>
                 </Collapsible.Content>
             </Collapsible.Root>

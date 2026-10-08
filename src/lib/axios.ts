@@ -2,6 +2,7 @@ import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axio
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env?.VITE_API_URL ?? "/api";
+const AUTH_ROUTES = ["/auth/login", "/auth/register", "/auth/refresh-token"];
 
 export const api: AxiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -16,9 +17,15 @@ api.interceptors.response.use(
         const originalRequest = error.config as InternalAxiosRequestConfig & {
         _retry?: boolean;
         };
+        
+        const isAuthRoute = AUTH_ROUTES.some((route) => 
+            originalRequest?.url?.includes(route)
+        );
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
+        if (error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !isAuthRoute
+        ) {
 
             if (!refreshPromise) {
                 refreshPromise = api
@@ -26,13 +33,14 @@ api.interceptors.response.use(
                     .then(() => true)
                     .catch(() => false)
                     .finally(() => {
-                        refreshPromise = null;
+                        refreshPromise = null
                     });
             }
 
             const refreshed = await refreshPromise;
             if (refreshed) {
-                return api(originalRequest);
+                originalRequest._retry = true
+                return api(originalRequest)
             }
         }
 

@@ -1,4 +1,6 @@
 import { pageTitles } from '@/constant';
+import { useAuth } from '@/lib/provider';
+import type { ApiError } from '@/types';
 import {
     Avatar,
     Box,
@@ -9,15 +11,33 @@ import {
     Text
 } from '@chakra-ui/react';
 import { useLocation, useNavigate } from '@tanstack/react-router';
+import axios from 'axios';
+import { useState } from 'react';
 import { FaBell } from 'react-icons/fa';
 
 const Navbar = () => {
     const location = useLocation()
     const navigate = useNavigate()
+    const { logout } = useAuth();
+    const [error, setError] = useState<string | null>(null);
+    
     const current = pageTitles[location.pathname] ?? {
         title: 'Warehouse Marketplace',
         subtitle: 'Browse verified industrial spaces, check real-time availability, and book leases',
     };
+
+    const handleLogout = async () => {
+        try {
+            console.log('logout')
+            await logout()
+            navigate({ to: '/login', replace: true })
+        } catch(err) {
+            if (axios.isAxiosError<ApiError>(err)) {
+                setError(err.response?.data?.message ?? "Something went wrong");
+            }
+        }
+    }
+
 
     return(
         <Flex 
@@ -107,7 +127,7 @@ const Navbar = () => {
                             <Menu.Content>
                                 <Menu.Item value="account">Account</Menu.Item>
                                 <Menu.Item value="settings" onClick={() => navigate({to: "/settings"})}>Settings</Menu.Item>
-                                <Menu.Item value="logout">Logout</Menu.Item>
+                                <Menu.Item value="logout" onClick={handleLogout}>Logout</Menu.Item>
                             </Menu.Content>
                         </Menu.Positioner>
                     </Portal>

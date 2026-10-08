@@ -1,11 +1,9 @@
 import { api } from '../axios';
 
 interface WarehouseRequest {
-    id: string,
     name: string,
-    capacityKg: number,
-    viewCount: number,
-    addressLine: string,
+    warehouseCapacityKg: number,
+    addressLine1: string,
     addressLine2: string,
     city: string,
     stateProvince: string,
@@ -24,7 +22,7 @@ export const getWarehouseById = async (id: string) => {
 }
 
 export const addWarehouse = async (request: WarehouseRequest) => {
-    const req = await api.post(`/warehouse`, {request})
+    const req = await api.post(`/warehouse/add`, {request})
     return req.data;
 }
 

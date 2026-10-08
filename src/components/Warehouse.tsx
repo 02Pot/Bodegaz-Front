@@ -3,17 +3,26 @@ import {
     Box,
     Button,
     Flex,
+    IconButton,
     Skeleton,
     SkeletonText,
     Text,
 } from "@chakra-ui/react";
+import { LuHeart } from "react-icons/lu";
 
 interface WarehouseProps {
     loading?: boolean;
     warehouse?: WarehouseInterface
+    isSaved?: boolean;
+    toggleSave?: (warehouse: WarehouseInterface) => void | Promise<void>;
 }
+const Warehouse = ({
+    loading = false,
+    warehouse,
+    isSaved = false,
+    toggleSave,
+}: WarehouseProps) => {
 
-const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
     if (loading) {
         return (
             <Box
@@ -27,7 +36,7 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
             >
                 <Skeleton h={{ base: "150px", md: "180px" }} />
 
-                <Flex direction="column" p={{ base: 4, md: 5 }} gap={5}>
+                <Flex flexDir="column" p={{ base: 4, md: 5 }} gap={5}>
                     <Box>
                         <Skeleton
                             height="24px"
@@ -78,7 +87,7 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
                         pt={4}
                         borderTop="1px solid"
                         borderColor="gray.100"
-                        direction={{ base: "column", sm: "row" }}
+                        flexDir={{ base: "column", sm: "row" }}
                     >
                         <Skeleton
                             height="40px"
@@ -98,8 +107,9 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
     }
 
     return (
-        <Box
+        <Flex
             w="100%"
+            flexDir="column"
             bg="white"
             border="1px solid"
             borderColor="gray.200"
@@ -107,23 +117,43 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
             overflow="hidden"
             boxShadow="sm"
             transition="all 0.2s"
-            _hover={{
-                boxShadow: "md",
-                transform: "translateY(-2px)",
-            }}
+            _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
         >
             <Box
                 h={{ base: "150px", sm: "170px", md: "180px" }}
                 bg="gray.100"
                 display="flex"
-                alignItems="center"
-                justifyContent="center"
+                flexDir="column"
             >
-                <Text>Warehouse Image</Text>
+                <IconButton
+                    aria-label={isSaved ? "Remove from saved" : "Save warehouse"}
+                    position="relative"
+                    alignSelf="flex-end"
+                    top={{ base: 2, md: 3 }}
+                    right={{ base: 2, md: 3 }}
+                    size={{ base: "xs", md: "sm" }}
+                    rounded="full"
+                    bg="white"
+                    boxShadow="sm"
+                    _hover={{ bg: "gray.50", transform: "scale(1.1)" }}
+                    transition="all 0.15s"
+                    onClick={() => warehouse && toggleSave?.(warehouse)}
+                >
+                    <LuHeart
+                        size={18}
+                        color={isSaved ? "#E53E3E" : "#718096"}
+                        fill={isSaved ? "#E53E3E" : "none"}
+                    />
+                </IconButton>
+
+                <Text alignSelf="center" my="auto">
+                    Warehouse Image
+                </Text>
             </Box>
 
             <Flex
-                direction="column"
+                flexDir="column"
+                flex='1'
                 p={{ base: 4, md: 5 }}
                 gap={5}
             >
@@ -132,7 +162,7 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
                         fontSize={{ base: "lg", md: "xl" }}
                         fontWeight="700"
                     >
-                        {/* {warehouse?.warehouseName} */}
+                        {warehouse?.name}
                     </Text>
 
                     <Text
@@ -140,14 +170,25 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
                         fontSize="sm"
                         color="gray.600"
                     >
-                        Warehouse address goes here
+                        {warehouse?.address?.addressLine1} {warehouse?.address?.addressLine2}
                     </Text>
                 </Box>
 
                 <Flex
                     gap={{ base: 4, sm: 8 }}
                     flexWrap="wrap"
+                    flexDir='column'
                 >
+                    <Box flex="1" minW="120px">
+                        <Text
+                            mt={1}
+                            fontSize={{ base: "sm", md: "md" }}
+                            fontWeight="500"
+                        >
+                            {warehouse?.address?.country}, {warehouse?.address?.stateProvince}, {warehouse?.address?.city}
+                        </Text>
+                    </Box>
+
                     <Box flex="1" minW="120px">
                         <Text
                             fontSize="xs"
@@ -163,36 +204,18 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
                             fontSize={{ base: "sm", md: "md" }}
                             fontWeight="600"
                         >
-                            {/* {warehouse?.warehouseCapacity} */}
-                        </Text>
-                    </Box>
-
-                    <Box flex="1" minW="120px">
-                        <Text
-                            fontSize="xs"
-                            fontWeight="600"
-                            textTransform="uppercase"
-                            color="gray.500"
-                        >
-                            Available Units
-                        </Text>
-
-                        <Text
-                            mt={1}
-                            fontSize={{ base: "sm", md: "md" }}
-                            fontWeight="600"
-                        >
-                            250
+                            {warehouse?.warehouseCapacityKg} KG
                         </Text>
                     </Box>
                 </Flex>
 
                 <Flex
+                    mt="auto"
                     gap={3}
                     pt={4}
                     borderTop="1px solid"
                     borderColor="gray.100"
-                    direction={{ base: "column", sm: "row" }}
+                    flexDir={{ base: "column", md: "row" }}
                 >
                     <Button
                         flex={1}
@@ -210,7 +233,7 @@ const Warehouse = ({ loading = false,warehouse }: WarehouseProps) => {
                     </Button>
                 </Flex>
             </Flex>
-        </Box>
+        </Flex>
     );
 };
 

@@ -27,12 +27,13 @@ export interface AuthTokens {
 }
 
 export interface WarehouseInterface{
-    id: string,
-    warehouseName: string,
-    warehouseCapacity: string,
+    warehouseId: string,
+    name: string,
+    warehouseCapacityKg: string,
     viewCount: string,
     address: WarehouseAddress,
     createAt: Date,
+    saved: boolean
 }
 
 export interface WarehouseAddress{
@@ -43,6 +44,14 @@ export interface WarehouseAddress{
     stateProvince: string,
     country: string,
     postalCode: string,
+}
+
+export interface ApiError {
+    timestamp: string;
+    status: number;
+    error: string;
+    message: string;
+    fieldErrors: Record<string, string> | null;
 }
 
 export type UserType = "SELLER_ROLE" | "BUYER_ROLE" | "";

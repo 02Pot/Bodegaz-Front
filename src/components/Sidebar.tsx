@@ -108,7 +108,7 @@ const Sidebar = () => {
                     newest?.length ? (
                         trending?.map((t) => ({
                             isActive: false,
-                            label: t.warehouseName,
+                            label: t.name,
                             onClick: () => handleNav('/')
                         }))
                     ) : (
@@ -124,7 +124,7 @@ const Sidebar = () => {
                         newest?.length ? (
                             newest?.map((n) => ({
                                 isActive: false,
-                                label: n.warehouseName,
+                                label: n.name,
                                 onClick: () => handleNav('/')
                             }))
                         ) : (

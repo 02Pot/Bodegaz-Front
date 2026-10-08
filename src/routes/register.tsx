@@ -1,9 +1,10 @@
 import { register, sendOtp, verifyOtp } from '@/lib/api/auth';
 import { authQueryOptions } from '@/lib/provider';
-import type { RegisterRequest, Step } from '@/types';
+import type { ApiError, RegisterRequest, Step } from '@/types';
 import { validateEmail } from '@/utils/email';
 import { Box, Button, Field, Flex, Heading, Input, InputGroup, PinInput, RadioCard, Stack, Steps, Text } from '@chakra-ui/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import axios from 'axios';
 import { useState } from 'react';
 import { LuUser } from 'react-icons/lu';
 import { MdEmail } from 'react-icons/md';
@@ -30,8 +31,7 @@ function Register() {
     email: "", name: "", otp: "", contactNumber: "", userType: "", password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
   const stepIndex = STEPS.indexOf(step);
 
   const update = (fields: Partial<RegisterRequest>) =>
@@ -59,15 +59,9 @@ function Register() {
       await sendOtp(data.name, data.email);
       update({ otp: "" });
       goNext("otp");
-    } catch(err:any) {
-      const status = err.response?.status;
-      const action = err.response?.data?.action;
-
-      if (status === 409 || action === "LOGIN_REQUIRED") {
-        setError("An account with this email already exists.");
-        setStep("info");
-      } else {
-        setError(err.response?.data?.message || "Failed to send OTP. Try again.");
+    } catch(err) {
+      if (axios.isAxiosError<ApiError>(err)) {
+        setError(err.response?.data?.message ?? "Something went wrong");
       }
     } finally {
       setLoading(false);
@@ -140,7 +134,7 @@ function Register() {
             <Input
               value={data.name}
               onChange={(e) => update({ name: e.target.value })}
-              placeholder="example"
+              placeholder="Username"
             />
             </InputGroup>
           </Field.Root>
@@ -151,7 +145,7 @@ function Register() {
               type="email"
               value={data.email}
               onChange={(e) => update({ email: e.target.value })}
-              placeholder="you@example.com"
+              placeholder="Email@example.com"
             />
             </InputGroup>
           </Field.Root>

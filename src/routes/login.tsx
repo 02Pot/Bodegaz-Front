@@ -1,7 +1,8 @@
 import { authQueryOptions, useAuth } from '@/lib/provider';
-import type { LoginRequest } from '@/types';
+import type { ApiError, LoginRequest } from '@/types';
 import { Box, Button, Field, Flex, Input, InputGroup, Stack, Text } from '@chakra-ui/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import axios from 'axios';
 import { useState } from 'react';
 import { LuEye, LuUser } from 'react-icons/lu';
 
@@ -18,7 +19,7 @@ function Login() {
     const navigate = useNavigate();
     const [data, setData] = useState<LoginRequest>({ email: "", password: "" });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState<string | null>(null);
 
     const update = (fields: Partial<LoginRequest>) =>
         setData((prev) => ({ ...prev, ...fields }));
@@ -36,8 +37,10 @@ function Login() {
         try {
             await login(data)
             navigate({ to: "/" });
-        } catch {
-            setError("Login failed. Try again.");
+        } catch(err) {
+            if (axios.isAxiosError<ApiError>(err)) {
+                setError(err.response?.data?.message ?? "Something went wrong");
+            }
         } finally {
             setLoading(false);
         }

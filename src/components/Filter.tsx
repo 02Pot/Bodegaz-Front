@@ -117,7 +117,7 @@ export const FilterMenu = ({
         setDraft((d) => ({ ...d, [key]: val }))
 
     const handleOpenChange = (isOpen: boolean) => {
-        if (isOpen) setDraft(applied) // discard unapplied edits when reopening
+        if (isOpen) setDraft(applied)
         setOpen(isOpen)
     }
 
@@ -136,7 +136,7 @@ export const FilterMenu = ({
     const activeCount = countActive(applied)
 
     return (
-        <Popover.Root open={open} onOpenChange={(e) => handleOpenChange(e.open)} positioning={{ placement: 'bottom-start' }}>
+        <Popover.Root open={open} onOpenChange={(e) => handleOpenChange(e.open)} positioning={{ placement: 'bottom-end' }}>
         <Popover.Trigger asChild>
             <Button variant="outline" size="sm" gap="8px" borderWidth="1px">
             <LuFilter />

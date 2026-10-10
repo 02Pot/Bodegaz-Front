@@ -2,11 +2,11 @@ import { register, sendOtp, verifyOtp } from '@/lib/api/auth';
 import { authQueryOptions } from '@/lib/provider';
 import type { ApiError, RegisterRequest, Step } from '@/types';
 import { validateEmail } from '@/utils/email';
-import { Box, Button, Field, Flex, Heading, Input, InputGroup, PinInput, RadioCard, Stack, Steps, Text } from '@chakra-ui/react';
+import { Box, Button, Field, FileUpload, Flex, Float, Heading, Input, InputGroup, PinInput, RadioCard, Stack, Steps, Text, useFileUploadContext } from '@chakra-ui/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import axios from 'axios';
 import { useState } from 'react';
-import { LuUser } from 'react-icons/lu';
+import { LuFileUp, LuUser, LuX } from 'react-icons/lu';
 import { MdEmail } from 'react-icons/md';
 
 export const Route = createFileRoute('/register')({
@@ -16,6 +16,50 @@ export const Route = createFileRoute('/register')({
   },
   component: Register,
 })
+
+const FileUploadList = () => {
+  const fileUpload = useFileUploadContext()
+  const file = fileUpload.acceptedFiles
+  if(file.length === 0) return null
+  return(
+    <FileUpload.ItemGroup alignItems='center'>
+      {file.map((file) => (
+        <FileUpload.Item
+          borderRadius='full'
+          boxSize='24'
+          p="0"
+          w='24'
+          overflow='hidden'
+          position='relative'
+          border='1px solid gray.200'
+          file={file}
+          key={file.name}
+        >
+          <Box boxSize="100%" rounded="full" overflow="hidden">
+            <FileUpload.ItemPreviewImage
+              boxSize="100%"
+              objectFit="cover"
+              rounded="full"
+            />
+          </Box>
+
+          <Float placement="top-end" offset="2">
+            <FileUpload.ItemDeleteTrigger
+              boxSize="5"
+              rounded="full"
+              bg="white"
+              boxShadow="sm"
+              color="gray.800"
+            >
+              <LuX />
+            </FileUpload.ItemDeleteTrigger>
+          </Float>
+        </FileUpload.Item>
+      ))}
+    </FileUpload.ItemGroup>
+  )
+}
+
 
 const STEPS: Step[] = ["info", "otp", "information"];
 const STEP_META = [
@@ -167,14 +211,24 @@ function Register() {
           <Text fontSize="sm" color="gray.500">
             Code sent to {data.email}
           </Text>
-          <PinInput.Root
-            value={data.otp.split("")}
-            onValueChange={(e) => update({ otp: e.value.join("") })}
+          <PinInput.Root w='100%' px='10'
+            value={Array.from({ length: 6 }, (_, i) => data.otp[i] ?? "")}
+            onValueChange={(e) => update({ otp: e.value.map((v) => v ?? "").join("") })}
+            otp
+            count={6}
+            placeholder=''
           >
             <PinInput.HiddenInput />
-            <PinInput.Control>
+            <PinInput.Control display='flex' justifyContent='center' gap='5' w='100%'>
               {[...Array(6)].map((_, i) => (
-                <PinInput.Input key={i} index={i} />
+                <PinInput.Input key={i} index={i}
+                  minW="0"
+                  flex='1'
+                  h="12"
+                  fontSize="2xl"
+                  fontWeight="semibold"
+                  textAlign="center"
+                />
               ))}
             </PinInput.Control>
           </PinInput.Root>
@@ -191,6 +245,37 @@ function Register() {
       {step === "information" && (
         <Stack gap={4} mt={6}>
           <Heading size="md">Set Profile Information</Heading>
+
+          <FileUpload.Root gap="3" alignItems="center">
+            <FileUpload.HiddenInput />
+            <FileUpload.Label>Upload Profile Picture</FileUpload.Label>
+            <FileUploadList/>
+            <FileUpload.Trigger asChild>
+              <Button variant="outline" size="sm"><LuFileUp /> Choose file</Button>
+            </FileUpload.Trigger>
+          </FileUpload.Root>
+
+          <Field.Root>
+            <Field.Label>Phone Number</Field.Label>
+            <Input
+              value={data.contactNumber}
+              onChange={(e) => update({ contactNumber: e.target.value })}
+              placeholder="Phone Number"
+            />
+          </Field.Root>
+          {error && <Text color="red.500" fontSize="sm">{error}</Text>}
+
+          <Field.Root>
+            <Field.Label>Password</Field.Label>
+            <Input
+              type="password"
+              value={data.password}
+              onChange={(e) => update({ password: e.target.value })}
+              placeholder="*******"
+            />
+          </Field.Root>
+          {error && <Text color="red.500" fontSize="sm">{error}</Text>}
+
           <RadioCard.Root
             value={data.userType}
             onValueChange={(e) => update({ userType: e.value as RegisterRequest["userType"] })}
@@ -221,27 +306,6 @@ function Register() {
               </RadioCard.Item>
             </Stack>
           </RadioCard.Root>
-
-          <Field.Root>
-            <Field.Label>Phone Number</Field.Label>
-            <Input
-              value={data.contactNumber}
-              onChange={(e) => update({ contactNumber: e.target.value })}
-              placeholder="Phone Number"
-            />
-          </Field.Root>
-          {error && <Text color="red.500" fontSize="sm">{error}</Text>}
-
-          <Field.Root>
-            <Field.Label>Password</Field.Label>
-            <Input
-              type="password"
-              value={data.password}
-              onChange={(e) => update({ password: e.target.value })}
-              placeholder="*******"
-            />
-          </Field.Root>
-          {error && <Text color="red.500" fontSize="sm">{error}</Text>}
 
           <Button onClick={handleSubmit} loading={loading}>
             Create account

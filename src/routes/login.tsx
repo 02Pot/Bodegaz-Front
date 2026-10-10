@@ -18,7 +18,6 @@ function Login() {
     const { login, loginError, isLoggingIn } = useAuth()
     const navigate = useNavigate();
     const [data, setData] = useState<LoginRequest>({ email: "", password: "" });
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const update = (fields: Partial<LoginRequest>) =>
@@ -33,7 +32,6 @@ function Login() {
             setError("Password must be at least 8 characters");
             return;
         }
-        setLoading(true);
         try {
             await login(data)
             navigate({ to: "/" });
@@ -41,8 +39,6 @@ function Login() {
             if (axios.isAxiosError<ApiError>(err)) {
                 setError(err.response?.data?.message ?? "Something went wrong");
             }
-        } finally {
-            setLoading(false);
         }
     };
     

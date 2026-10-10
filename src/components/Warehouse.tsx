@@ -1,14 +1,18 @@
+import { BASE_URL } from "@/constant";
 import type { WarehouseInterface } from "@/types";
 import {
     Box,
     Button,
+    Carousel,
+    Center,
     Flex,
     IconButton,
+    Image,
     Skeleton,
     SkeletonText,
-    Text,
+    Text
 } from "@chakra-ui/react";
-import { LuHeart } from "react-icons/lu";
+import { LuChevronDown, LuHeart } from "react-icons/lu";
 
 interface WarehouseProps {
     loading?: boolean;
@@ -16,6 +20,8 @@ interface WarehouseProps {
     isSaved?: boolean;
     toggleSave?: (warehouse: WarehouseInterface) => void | Promise<void>;
 }
+
+
 const Warehouse = ({
     loading = false,
     warehouse,
@@ -119,18 +125,71 @@ const Warehouse = ({
             transition="all 0.2s"
             _hover={{ boxShadow: "md", transform: "translateY(-2px)" }}
         >
+    
             <Box
+                position="relative"
                 h={{ base: "150px", sm: "170px", md: "180px" }}
                 bg="gray.100"
-                display="flex"
-                flexDir="column"
+                overflow="hidden"
             >
+                {warehouse?.imageUrls?.length ? (
+                    <Carousel.Root
+                        autoplay
+                        orientation="vertical"
+                        slideCount={warehouse.imageUrls.length}
+                        loop
+                        w="100%"
+                        h="100%"
+                    >
+                        <Carousel.ItemGroup w="100%" h="100%">
+                            {warehouse.imageUrls.map((url, index) => (
+                                <Carousel.Item key={url} index={index} h="100%">
+                                    <Image
+                                        src={`${BASE_URL}${url}`}
+                                        alt={`${warehouse.name}`}
+                                        w="100%"
+                                        h="100%"
+                                        objectFit="cover"
+                                    />
+                                </Carousel.Item>
+                            ))}
+                        </Carousel.ItemGroup>
+                        {warehouse.imageUrls.length > 1 &&
+                        <Carousel.Control
+                            position="absolute"
+                            right={{ base: 2, md: 3 }}
+                            top={{ base: 10, md: 14 }}
+                            bottom={{ base: 2, md: 3 }}
+                            flexDirection="column"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            zIndex={2}
+                        >
+                            <Carousel.NextTrigger asChild>
+                                <IconButton
+                                    size={{ base: "xs", md: "sm" }}
+                                    rounded="full"
+                                    bg="white"
+                                    color="gray.800"
+                                    boxShadow="sm"
+                                    _hover={{ bg: "gray.50", transform: "scale(1.1)" }}
+                                    transition="all 0.15s"
+                                >
+                                    <LuChevronDown />
+                                </IconButton>
+                            </Carousel.NextTrigger>
+                        </Carousel.Control>}
+                    </Carousel.Root>
+                ) : (
+                    <Center h="100%" color="gray.400">No image</Center>
+                )}
+
                 <IconButton
                     aria-label={isSaved ? "Remove from saved" : "Save warehouse"}
-                    position="relative"
-                    alignSelf="flex-end"
+                    position="absolute"
                     top={{ base: 2, md: 3 }}
                     right={{ base: 2, md: 3 }}
+                    zIndex={2}
                     size={{ base: "xs", md: "sm" }}
                     rounded="full"
                     bg="white"
@@ -145,10 +204,6 @@ const Warehouse = ({
                         fill={isSaved ? "#E53E3E" : "none"}
                     />
                 </IconButton>
-
-                <Text alignSelf="center" my="auto">
-                    Warehouse Image
-                </Text>
             </Box>
 
             <Flex

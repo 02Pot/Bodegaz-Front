@@ -33,7 +33,8 @@ export interface WarehouseInterface{
     viewCount: string,
     address: WarehouseAddress,
     createAt: Date,
-    saved: boolean
+    saved: boolean,
+    imageUrls: string[]
 }
 
 export interface WarehouseAddress{

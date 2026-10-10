@@ -1,3 +1,6 @@
+export const BASE_URL = import.meta.env.VITE_BASE_URL as string;
+export const API_URL = import.meta.env.VITE_API_URL as string;
+
 export const pageTitles: Record<string,{title:string; subtitle: string}> = {
     '/': {
         title: 'Find Rentals',

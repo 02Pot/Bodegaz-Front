@@ -6,100 +6,105 @@ import Warehouse from '@/components/Warehouse'
 import { saveWarehouse, unsaveWarehouse } from '@/lib/api/savedwarehouse'
 import { getFeedWarehouses } from '@/lib/api/warehouse'
 import type { ApiError, WarehouseInterface } from '@/types'
-import { Box, Flex, Grid } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text } from '@chakra-ui/react'
+import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import axios from 'axios'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 export const Route = createFileRoute('/_authenticated/')({
   component: RouteComponent,
 })
 
+type Page = Awaited<ReturnType<typeof getFeedWarehouses>>
+
 function RouteComponent() {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setLoading] = useState(false);
-  const [isAppending, setIsAppending] = useState<boolean>(false)
-  const [warehouses, setWarehouse] = useState<WarehouseInterface[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasNext, setHasNext] = useState<boolean>(false)
-  const [savedIds, setSavedIds] = useState<Set<WarehouseInterface["warehouseId"]>>(new Set());
+  const {
+    data,
+    isPending,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['warehouses'],
+    queryFn: ({ pageParam }) =>
+      getFeedWarehouses({ size: 10, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
+  })
+
+  const warehouses = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data]
+  )
+
+  const queryClient = useQueryClient()
+  const queryKey = ['warehouses']
 
   const isEmpty = warehouses.length === 0
-  useEffect(() => {
-    setSavedIds(new Set(warehouses.filter((w) => w.saved).map((w) => w.warehouseId)));
-  }, [warehouses]);
+
+  const errorMessage = isError ? axios.isAxiosError<ApiError>(error)
+    ? (error.response?.data?.message ?? 'Something went wrong')
+    : 'Something went wrong'
+    : null
 
 
-  const setSaved = (id: WarehouseInterface["warehouseId"], saved: boolean) =>
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      saved ? next.add(id) : next.delete(id);
-      return next;
-    });
+  const toggleSaveMutation = useMutation({
+    mutationFn: ({ id, wasSaved }: { id: string; wasSaved: boolean }) =>
+      wasSaved ? unsaveWarehouse(id) : saveWarehouse(id),
 
-  const toggleSave = async (w: WarehouseInterface) => {
-    const id = w.warehouseId;
-    const wasSaved = savedIds.has(id);
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey })
 
-    setSaved(id, !wasSaved);
+      const previous = queryClient.getQueryData<InfiniteData<Page>>(queryKey)
 
-    try {
-      wasSaved ? await unsaveWarehouse(id) : await saveWarehouse(id);
-    } catch {
-      setSaved(id, wasSaved);
-    }
-  };
+      queryClient.setQueryData<InfiniteData<Page>>(queryKey, (old) =>
+        old && {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: page.items.filter((w:WarehouseInterface) => w.warehouseId !== id),
+          })),
+        }
+      )
+
+      return { previous }
+    },
+
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
+    },
+  })
+
+  const toggleSave = (w: WarehouseInterface) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
 
   const loadMoreWarehouse = useCallback(() => {
-    if (isLoading || !hasNext || !cursor) return
-  }, [ cursor, hasNext])
+    if (!hasNextPage || isFetchingNextPage) return
+    fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const fetchWarehouses = useCallback(async (nextCursor?: string, append = false) => {
-    try {
-      append
-        ? setIsAppending(true)
-        : setLoading(true);
-  
-      const data = await getFeedWarehouses({ size: 10, cursor: nextCursor });
-
-      setWarehouse((prev) =>
-        append
-          ? [...prev, ...data.items]
-          : data.items
-        );
-      console.log(data.items)
-      setHasNext(data.hasNext);
-      setCursor(data.nextCursor);
-    } catch (err) {
-      if (axios.isAxiosError<ApiError>(err)) {
-        setError(err.response?.data?.message ?? "Something went wrong");
-      }
-    } finally {
-      setIsAppending(false)
-      setLoading(false)
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchWarehouses();
-  }, [fetchWarehouses]);
 
   return(
     <>
       <Flex w='100%' height='100%' gap='12px'>
         <Box flex={'1'} minW={0}>
           <SearchBar/>
+          {errorMessage && <Text color="red.500">{errorMessage}</Text>}
+          
           <Grid
             alignContent='start'
             alignItems='start'
             templateColumns={
-              isEmpty ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))"
+              isEmpty && !isPending ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))"
             }
             rowGap="8px"
             columnGap="16px"
             padding={{ base: '12px 0px 0px', md: '24px 24px 0px' }}
           >
-            {isLoading ? (
+            {isPending ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <Warehouse key={i} loading />
               ))
@@ -111,12 +116,12 @@ function RouteComponent() {
                   key={w.warehouseId} 
                   warehouse={w} 
                   loading={false} 
-                  isSaved={savedIds.has(w.warehouseId)} 
+                  isSaved={w.saved} 
                   toggleSave={toggleSave}/>
               ))
             )}
 
-            {isAppending &&
+            {isFetchingNextPage &&
               Array.from({ length: 4 }).map((_, i) => (
                 <Warehouse key={`append-${i}`} loading />
               ))}
@@ -126,8 +131,8 @@ function RouteComponent() {
         <InfiniteScroll
           rootMargin="400px"
           onLoadMore={loadMoreWarehouse}
-          hasMore={hasNext}
-          isLoading={isLoading}
+          hasMore={!!hasNextPage}
+          isLoading={isPending || isFetchingNextPage}
         />
 
         <Box display={{ base: "none", lg: "block" }}>

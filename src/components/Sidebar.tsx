@@ -25,8 +25,6 @@ const navItems: {
 const Sidebar = () => {
     const navigate = useNavigate();
     const {currentUser} = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
     const [trending,setTrending] = useState<WarehouseInterface[]>();
     const [newest,setNewest] = useState<WarehouseInterface[]>();
 

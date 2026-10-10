@@ -38,7 +38,6 @@ const Navbar = () => {
         }
     }
 
-
     return(
         <Flex 
             as="header"

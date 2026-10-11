@@ -6,9 +6,18 @@ export const login = async (data: LoginRequest): Promise<User> => {
     return req.data;
 };
 
-export const register = async ( email: string,contactNumber: string,password: string,userType: string) => {
-    const response = await api.post(`/auth/register`, { email,contactNumber,password,userType });
-    return response.data;
+export const register = async ( email: string,contactNumber: string,password: string,userType: string,file?: File | null) => {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('contactNumber', contactNumber);
+    formData.append('password', password);
+    formData.append('userType', userType);
+    if (file) formData.append('file', file);
+
+    const res = await api.post('/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
 }
 
 export const authcheck = async (): Promise<User | null> => {

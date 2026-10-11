@@ -1,5 +1,5 @@
 import { addWarehouse } from '@/lib/api/warehouse'
-import { Box, Button, CloseButton, Dialog, Field, Fieldset, FileUpload, Flex, Icon, Input, Portal, Span, Stack, useFileUploadContext } from '@chakra-ui/react'
+import { Box, Button, CloseButton, Dialog, Field, Fieldset, FileUpload, Flex, Icon, Input, Portal, Span, Stack, Text, useFileUploadContext } from '@chakra-ui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { useEffect, useMemo, useState } from 'react'
@@ -210,6 +210,7 @@ const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void
                                             {field('country', 'Country')}
                                             {field('postalCode', 'Postal Code')}
                                         </Flex>
+                                        {errors && <Text>{errors}</Text>}
                                     </Fieldset.Content>
                                 </Fieldset.Root>
 

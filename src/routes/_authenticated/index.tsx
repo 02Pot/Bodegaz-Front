@@ -28,9 +28,10 @@ function RouteComponent() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['warehouses'],
-    queryFn: ({ pageParam }) =>
-      getFeedWarehouses({ size: 10, cursor: pageParam }),
+    queryKey: ['warehouses','feed'],
+    queryFn: ({ pageParam }) => getFeedWarehouses({ size: 10, cursor: pageParam }),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) =>
       lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
@@ -56,27 +57,30 @@ function RouteComponent() {
     mutationFn: ({ id, wasSaved }: { id: string; wasSaved: boolean }) =>
       wasSaved ? unsaveWarehouse(id) : saveWarehouse(id),
 
-    onMutate: async ({ id }) => {
+    onMutate: async ({ id,wasSaved }) => {
       await queryClient.cancelQueries({ queryKey })
-
       const previous = queryClient.getQueryData<InfiniteData<Page>>(queryKey)
 
-      queryClient.setQueryData<InfiniteData<Page>>(queryKey, (old) =>
-        old && {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            items: page.items.filter((w:WarehouseInterface) => w.warehouseId !== id),
-          })),
-        }
-      )
-
-      return { previous }
+        queryClient.setQueryData<InfiniteData<Page>>(queryKey, (old) =>
+          old && {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              items: page.items.map((w: WarehouseInterface) =>
+                w.warehouseId === id ? { ...w, saved: !wasSaved } : w
+              ),
+            })),
+          }
+        )
+        return { previous }
     },
 
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['warehouses']})
+    }
   })
 
   const toggleSave = (w: WarehouseInterface) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
@@ -126,14 +130,13 @@ function RouteComponent() {
                 <Warehouse key={`append-${i}`} loading />
               ))}
           </Grid>
+          <InfiniteScroll
+            rootMargin="400px"
+            onLoadMore={loadMoreWarehouse}
+            hasMore={!!hasNextPage}
+            isLoading={isPending || isFetchingNextPage}
+          />
         </Box>
-        
-        <InfiniteScroll
-          rootMargin="400px"
-          onLoadMore={loadMoreWarehouse}
-          hasMore={!!hasNextPage}
-          isLoading={isPending || isFetchingNextPage}
-        />
 
         <Box display={{ base: "none", lg: "block" }}>
           <RecentVisited />

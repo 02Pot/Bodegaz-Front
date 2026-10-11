@@ -26,7 +26,7 @@ function RouteComponent() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['warehouses'],
+    queryKey: ['warehouses','saved'],
     queryFn: ({ pageParam }) =>
       getSavedWarehouses({ size: 10, cursor: pageParam }),
     initialPageParam: undefined as string | undefined,
@@ -75,6 +75,9 @@ function RouteComponent() {
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ['warehouses']})
+    }
   })
 
   const toggleSave = (w: WarehouseInterface) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })

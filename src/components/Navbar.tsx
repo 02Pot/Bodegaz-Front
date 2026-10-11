@@ -1,4 +1,5 @@
 import { pageTitles } from '@/constant';
+import useProfile from '@/lib/hooks/useProfile';
 import { useAuth } from '@/lib/provider';
 import type { ApiError } from '@/types';
 import {
@@ -18,6 +19,7 @@ import { FaBell } from 'react-icons/fa';
 const Navbar = () => {
     const location = useLocation()
     const navigate = useNavigate()
+    const {data: profile } = useProfile();
     const { logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
     
@@ -34,6 +36,7 @@ const Navbar = () => {
         } catch(err) {
             if (axios.isAxiosError<ApiError>(err)) {
                 setError(err.response?.data?.message ?? "Something went wrong");
+                console.log(error);
             }
         }
     }
@@ -117,8 +120,8 @@ const Navbar = () => {
                 <Menu.Root positioning={{placement: "bottom"}}>
                     <Menu.Trigger rounded={'full'} focusRing={'outside'}>
                             <Avatar.Root size="sm">
-                                <Avatar.Fallback name="Segun Adebayo" />
-                                <Avatar.Image src="https://bit.ly/sage-adebayo" />
+                                <Avatar.Fallback name='User' />
+                                <Avatar.Image src={profile} />
                             </Avatar.Root>
                     </Menu.Trigger>
                     <Portal>

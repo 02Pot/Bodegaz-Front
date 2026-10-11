@@ -81,8 +81,8 @@ const Sidebar = () => {
                             py={2.5}
                             borderRadius="md"
                             cursor="pointer"
-                            bg={isActive ? '#212135' : 'transparent'}
-                            color={isActive ? '#02c9e0' : '#111111'}
+                            bg={isActive ? '#000000' : 'transparent'}
+                            color={isActive ? '#ffffff' : '#111111'}
                             fontWeight={isActive ? 'semibold' : 'medium'}
                             borderLeft="3px solid"
                             borderLeftColor={isActive ? '#02c9e0' : 'transparent'}
@@ -147,8 +147,8 @@ const Sidebar = () => {
                 mt="auto"
                 borderRadius="md"
                 cursor="pointer"
-                bg={active === 'Settings' ? '#212135' : 'transparent'}
-                color={active === 'Settings' ? '#02c9e0' : '#111111'}
+                bg={active === 'Settings' ? '#000000' : 'transparent'}
+                color={active === 'Settings' ? '#ffffff' : '#111111'}
                 fontWeight={active === 'Settings' ? 'semibold' : 'medium'}
                 _hover={{ bg: active === 'Settings' ? '#0f0708' : '#aabde4' }}
                 transition="background 0.15s, color 0.15s"

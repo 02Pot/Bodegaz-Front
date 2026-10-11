@@ -77,6 +77,7 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const stepIndex = STEPS.indexOf(step);
+  const [profileFile, setProfileFile] = useState<File | null>(null);
 
   const update = (fields: Partial<RegisterRequest>) =>
     setData((prev) => ({ ...prev, ...fields }));
@@ -123,7 +124,7 @@ function Register() {
 
     try {
         const res = await verifyOtp(data.email, data.otp);
-        if (res.success && res.action === "ONBOARDING") {
+        if (res.success && res.action === "ONBOARD") {
           goNext("information");
         } else {
           setError("Invalid or expired code");
@@ -146,7 +147,7 @@ function Register() {
     }
     setLoading(true);
     try {
-      await register(data.email,data.contactNumber,data.password,data.userType)
+      await register(data.email,data.contactNumber,data.password,data.userType,profileFile)
       navigate({ to: "/" });
     } catch {
       setError("Registration failed. Try again.");
@@ -246,7 +247,9 @@ function Register() {
         <Stack gap={4} mt={6}>
           <Heading size="md">Set Profile Information</Heading>
 
-          <FileUpload.Root gap="3" alignItems="center">
+          <FileUpload.Root gap="3" alignItems="center" maxFiles={1} 
+            accept={["image/jpeg", "image/png", "image/webp"]}
+            onFileChange={(d) => setProfileFile(d.acceptedFiles[0] ?? null)}>
             <FileUpload.HiddenInput />
             <FileUpload.Label>Upload Profile Picture</FileUpload.Label>
             <FileUploadList/>

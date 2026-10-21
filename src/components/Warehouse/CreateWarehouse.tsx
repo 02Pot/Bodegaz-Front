@@ -1,25 +1,18 @@
 import { addWarehouse } from '@/lib/api/warehouse'
+import { qk } from '@/lib/queryKeys'
+import type { WarehouseRequest } from '@/types'
 import { Box, Button, CloseButton, Dialog, Field, Fieldset, FileUpload, Flex, Icon, Input, Portal, Span, Stack, Text, useFileUploadContext } from '@chakra-ui/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { useEffect, useMemo, useState } from 'react'
 import { LuUpload } from 'react-icons/lu'
 
-type FormState = {
-    name: string
-    warehouseCapacityKg: string 
-    addressLine1: string
-    addressLine2: string
-    city: string
-    stateProvince: string
-    country: string
-    postalCode: string
-}
-type Errors = Partial<Record<keyof FormState, string>>
 
-const emptyForm: FormState = {
+type Errors = Partial<Record<keyof WarehouseRequest, string>>
+
+const emptyForm: WarehouseRequest = {
     name: '',
-    warehouseCapacityKg: '',
+    warehouseCapacityKg: 0,
     addressLine1: '',
     addressLine2: '',
     city: '',
@@ -28,19 +21,18 @@ const emptyForm: FormState = {
     postalCode: '',
 }
 
-
 const MAX_IMAGES = 5
 const MAX_SIZE = 10 * 1024 * 1024
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
 
-const validate = (f: FormState): Errors => {
+const validate = (f: WarehouseRequest): Errors => {
     const e: Errors = {}
     if (!f.name.trim()) e.name = 'Name is required'
     const cap = Number(f.warehouseCapacityKg)
-    if (!f.warehouseCapacityKg.trim()) e.warehouseCapacityKg = 'Capacity is required'
+    if (!f.warehouseCapacityKg.toLocaleString) e.warehouseCapacityKg = 'Capacity is required'
     else if (!Number.isFinite(cap) || cap <= 0) e.warehouseCapacityKg = 'Capacity must be greater than 0'
     if (!f.addressLine1.trim()) e.addressLine1 = 'Address 1 is required'
-    if (!f.addressLine2.trim()) e.addressLine2 = 'Address 2 is required'
+    if (!f.addressLine2?.trim()) e.addressLine2 = 'Address 2 is required'
     if (!f.city.trim()) e.city = 'City is required'
     if (!f.stateProvince.trim()) e.stateProvince = 'State / Province is required'
     if (!f.country.trim()) e.country = 'Country is required'
@@ -116,7 +108,7 @@ const ImagePreviews = () => (
 
 const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
     const queryClient = useQueryClient()
-    const [form, setForm] = useState<FormState>(emptyForm)
+    const [form, setForm] = useState<WarehouseRequest>(emptyForm)
     const [errors, setErrors] = useState<string | null>(null)
     const [images, setImages] = useState<File[]>([])
     const [fieldErrors, setFieldErrors] = useState<Errors>({})
@@ -124,7 +116,7 @@ const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void
     const { mutate, isPending } = useMutation({
         mutationFn: addWarehouse,
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['warehouses'] })
+            await queryClient.invalidateQueries({ queryKey: qk.warehousesAll })
             handleClose()
         },
         onError: (error: AxiosError<{ message?: string }>) => {
@@ -147,7 +139,6 @@ const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('submit fired', form, validate(form))
         const found = validate(form)
         setFieldErrors(found)
         if (Object.keys(found).length > 0) return
@@ -157,7 +148,7 @@ const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void
                 name: form.name.trim(),
                 warehouseCapacityKg: Number(form.warehouseCapacityKg),
                 addressLine1: form.addressLine1.trim(),
-                addressLine2: form.addressLine2.trim(),
+                addressLine2: form.addressLine2?.trim() ?? null,
                 city: form.city.trim(),
                 stateProvince: form.stateProvince.trim(),
                 country: form.country.trim(),
@@ -167,10 +158,10 @@ const CreateWarehouse = ({ open, onClose }: { open: boolean; onClose: () => void
         })
     }
 
-    const field = (name: keyof FormState, label: string, type = 'text') => (
+    const field = (name: keyof WarehouseRequest, label: string, type = 'text') => (
         <Field.Root invalid={!!fieldErrors[name]}>
             <Field.Label>{label}<Span color="red">*</Span></Field.Label>
-            <Input name={name} type={type} value={form[name]} onChange={handleChange} />
+            <Input name={name} type={type} value={form[name] ?? ''} onChange={handleChange} />
             <Field.ErrorText>{fieldErrors[name]}</Field.ErrorText>
         </Field.Root>
     )

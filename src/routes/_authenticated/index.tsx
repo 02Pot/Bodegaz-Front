@@ -2,40 +2,25 @@ import EmptyState from '@/components/EmptyState'
 import InfiniteScroll from '@/components/InfiniteScroll'
 import RecentVisited from '@/components/Recent'
 import SearchBar from '@/components/SearchAdd'
-import Warehouse from '@/components/Warehouse'
+import Warehouse from '@/components/Warehouse/Warehouse'
 import { saveWarehouse, unsaveWarehouse } from '@/lib/api/savedwarehouse'
 import { getFeedWarehouses } from '@/lib/api/warehouse'
-import type { ApiError, WarehouseInterface } from '@/types'
+import type { ApiError, WarehouseResponse } from '@/types'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
-import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query'
+import { infiniteQueryOptions, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import axios from 'axios'
 import { useCallback, useMemo } from 'react'
 
 export const Route = createFileRoute('/_authenticated/')({
+  loader: ({context: {queryClient}}) => queryClient.infiniteQuery(feedQueryOptions),
   component: RouteComponent,
 })
 
-type Page = Awaited<ReturnType<typeof getFeedWarehouses>>
+export type Page = Awaited<ReturnType<typeof getFeedWarehouses>>
 
 function RouteComponent() {
-  const {
-    data,
-    isPending,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ['warehouses','feed'],
-    queryFn: ({ pageParam }) => getFeedWarehouses({ size: 10, cursor: pageParam }),
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
-  })
+  const { data,fetchNextPage,hasNextPage,isFetchingNextPage,isError,error} = useInfiniteQuery({...feedQueryOptions,refetchOnWindowFocus:false})
 
   const warehouses = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -43,7 +28,7 @@ function RouteComponent() {
   )
 
   const queryClient = useQueryClient()
-  const queryKey = ['warehouses']
+  const queryKey = feedQueryOptions.queryKey
 
   const isEmpty = warehouses.length === 0
 
@@ -66,7 +51,7 @@ function RouteComponent() {
             ...old,
             pages: old.pages.map((page) => ({
               ...page,
-              items: page.items.map((w: WarehouseInterface) =>
+              items: page.items.map((w: WarehouseResponse) =>
                 w.warehouseId === id ? { ...w, saved: !wasSaved } : w
               ),
             })),
@@ -83,7 +68,7 @@ function RouteComponent() {
     }
   })
 
-  const toggleSave = (w: WarehouseInterface) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
+  const toggleSave = (w: WarehouseResponse) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
 
   const loadMoreWarehouse = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
@@ -102,13 +87,13 @@ function RouteComponent() {
             alignContent='start'
             alignItems='start'
             templateColumns={
-              isEmpty && !isPending ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))"
+              isEmpty ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))"
             }
             rowGap="8px"
             columnGap="16px"
             padding={{ base: '12px 0px 0px', md: '24px 24px 0px' }}
           >
-            {isPending ? (
+            {isFetchingNextPage ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <Warehouse key={i} loading />
               ))
@@ -134,7 +119,7 @@ function RouteComponent() {
             rootMargin="400px"
             onLoadMore={loadMoreWarehouse}
             hasMore={!!hasNextPage}
-            isLoading={isPending || isFetchingNextPage}
+            isLoading={isFetchingNextPage}
           />
         </Box>
 
@@ -145,3 +130,12 @@ function RouteComponent() {
     </>
   )
 }
+
+const feedQueryOptions = infiniteQueryOptions({
+  queryKey: ['warehouses', 'feed'],
+  queryFn: ({ pageParam }) => getFeedWarehouses({ size: 10, cursor: pageParam }),
+  staleTime: 5 * 60 * 1000,
+  initialPageParam: undefined as string | undefined,
+  getNextPageParam: (lastPage) =>
+    lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
+})

@@ -1,38 +1,24 @@
 import EmptyState from '@/components/EmptyState';
 import InfiniteScroll from '@/components/InfiniteScroll';
 import SearchBar from '@/components/SearchAdd';
-import Warehouse from '@/components/Warehouse';
+import Warehouse from '@/components/Warehouse/Warehouse';
 import { getSavedWarehouses, saveWarehouse, unsaveWarehouse } from '@/lib/api/savedwarehouse';
-import type { ApiError, WarehouseInterface } from '@/types';
+import type { ApiError, WarehouseResponse } from '@/types';
 import { Box, Flex, Grid, Text } from '@chakra-ui/react';
-import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { infiniteQueryOptions, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import axios from 'axios';
 import { useCallback, useMemo } from 'react';
 
 export const Route = createFileRoute('/_authenticated/saved-rental')({
   component: RouteComponent,
+  loader: ({context: {queryClient}}) => queryClient.infiniteQuery(feedQueryOptions),
 })
 
 type Page = Awaited<ReturnType<typeof getSavedWarehouses>>
 
 function RouteComponent() {
-  const {
-    data,
-    isPending,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ['warehouses','saved'],
-    queryFn: ({ pageParam }) =>
-      getSavedWarehouses({ size: 10, cursor: pageParam }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
-  })
+  const { data,fetchNextPage,hasNextPage,isFetchingNextPage,isError,error} = useInfiniteQuery({...feedQueryOptions,refetchOnWindowFocus:false})
 
   const warehouses = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -64,7 +50,7 @@ function RouteComponent() {
           ...old,
           pages: old.pages.map((page) => ({
             ...page,
-            items: page.items.filter((w:WarehouseInterface) => w.warehouseId !== id),
+            items: page.items.filter((w:WarehouseResponse) => w.warehouseId !== id),
           })),
         }
       )
@@ -80,7 +66,7 @@ function RouteComponent() {
     }
   })
 
-  const toggleSave = (w: WarehouseInterface) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
+  const toggleSave = (w: WarehouseResponse) =>toggleSaveMutation.mutate({ id: w.warehouseId, wasSaved: w.saved })
 
   const loadMoreWarehouse = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return
@@ -104,7 +90,7 @@ function RouteComponent() {
             columnGap="16px"
             padding={{ base: '12px 0px 0px', md: '24px 24px 0px' }}
           >
-            {isPending ? (
+            {isFetchingNextPage ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <Warehouse key={i} loading />
               ))
@@ -132,10 +118,19 @@ function RouteComponent() {
           rootMargin="400px"
           onLoadMore={loadMoreWarehouse}
           hasMore={!!hasNextPage}
-          isLoading={isPending || isFetchingNextPage}
+          isLoading={isFetchingNextPage}
         />
 
       </Flex>
     </>
   )
 }
+
+const feedQueryOptions = infiniteQueryOptions({
+  queryKey: ['warehouses', 'saved'],
+  queryFn: ({ pageParam }) => getSavedWarehouses({ size: 10, cursor: pageParam }),
+  staleTime: 5 * 60 * 1000,
+  initialPageParam: undefined as string | undefined,
+  getNextPageParam: (lastPage) =>
+    lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
+})

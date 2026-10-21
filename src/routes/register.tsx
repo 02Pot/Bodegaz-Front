@@ -1,7 +1,7 @@
 import { register, sendOtp, verifyOtp } from '@/lib/api/auth';
 import { authQueryOptions } from '@/lib/provider';
 import type { ApiError, RegisterRequest, Step } from '@/types';
-import { validateEmail } from '@/utils/email';
+import { validateEmail } from '@/utils/helpers';
 import { Box, Button, Field, FileUpload, Flex, Float, Heading, Input, InputGroup, PinInput, RadioCard, Stack, Steps, Text, useFileUploadContext } from '@chakra-ui/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import axios from 'axios';

@@ -1,10 +1,11 @@
+import type { WarehouseEditValues } from '@/components/Warehouse/EditWarehouse';
 import { api } from '../axios';
 
 interface WarehouseRequest {
     name: string,
     warehouseCapacityKg: number,
     addressLine1: string,
-    addressLine2: string,
+    addressLine2: string | null,
     city: string,
     stateProvince: string,
     country: string,
@@ -21,6 +22,11 @@ export const getWarehouseById = async (id: string) => {
     return req.data;
 }
 
+export const getMyWarehouse = async () => {
+    const req = await api.get(`/warehouse/my-rental`);
+    return req.data
+}
+
 export const addWarehouse = async ({request,images}: {request: WarehouseRequest, images:File[]}) => {
     const form = new FormData()
     form.append('data', new Blob([JSON.stringify(request)],{type: 'application/json'}))
@@ -29,14 +35,25 @@ export const addWarehouse = async ({request,images}: {request: WarehouseRequest,
     return req.data;
 }
 
-export const updateWarehouse = async ({warehouseId, request, newImages,removeImages} : {warehouseId:string, request: WarehouseRequest,newImages: File[], removeImages: string[]}) => {
-    const form = new FormData()
-    form.append('data', new Blob([JSON.stringify(request)],{type: 'application/json'}))
-    newImages.forEach((file) => form.append('images', file))
-    removeImages.forEach((id) => form.append('removeImageIds', id))
-    const req = await api.put(`/warehouse/${warehouseId}`, form,{headers: {'Content-Type': undefined}} )
-    return req.data
-}
+export const updateWarehouse = async (
+    id: string,
+    values: WarehouseEditValues,
+    files: File[],
+    removeImageIds: string[]
+) => {
+    const form = new FormData();
+    if (Object.keys(values).length > 0) {
+        form.append(
+            "data",
+            new Blob([JSON.stringify(values)], { type: "application/json" })
+        );
+    }
+
+    files.forEach((f) => form.append("files", f));
+    removeImageIds.forEach((imgId) => form.append("removeImageIds", imgId));
+
+    return api.patch(`/warehouse/${id}`, form);
+};
 
 export const deleteWarehouse = async (id: string) => {
     const req = await api.delete(`/warehouse/${id}`)

@@ -1,5 +1,5 @@
 import { BASE_URL } from "@/constant";
-import type { WarehouseInterface } from "@/types";
+import type { WarehouseResponse } from "@/types";
 import {
     Box,
     Button,
@@ -12,15 +12,15 @@ import {
     SkeletonText,
     Text
 } from "@chakra-ui/react";
+import { useNavigate } from "@tanstack/react-router";
 import { LuChevronDown, LuHeart } from "react-icons/lu";
 
 interface WarehouseProps {
     loading?: boolean;
-    warehouse?: WarehouseInterface
+    warehouse?: WarehouseResponse
     isSaved?: boolean;
-    toggleSave?: (warehouse: WarehouseInterface) => void | Promise<void>;
+    toggleSave?: (warehouse: WarehouseResponse) => void | Promise<void>;
 }
-
 
 const Warehouse = ({
     loading = false,
@@ -28,6 +28,7 @@ const Warehouse = ({
     isSaved = false,
     toggleSave,
 }: WarehouseProps) => {
+    const navigate = useNavigate()
 
     if (loading) {
         return (
@@ -276,6 +277,12 @@ const Warehouse = ({
                         flex={1}
                         variant="outline"
                         size={{ base: "sm", md: "md" }}
+                        onClick={() => {
+                            navigate({
+                                to: "/$warehouseId",
+                                params: {warehouseId: warehouse?.warehouseId ?? ''},
+                            })
+                        }}
                     >
                         Inspect Details
                     </Button>

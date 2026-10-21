@@ -1,8 +1,8 @@
 import { newestWarehouses, trendingWarehouses } from '@/lib/api/warehouse';
 import { useAuth } from '@/lib/provider';
-import type { WarehouseInterface } from '@/types';
+import type { WarehouseResponse } from '@/types';
 import { Drawer, Flex, IconButton, Portal, Text, VStack } from '@chakra-ui/react';
-import { useNavigate, type LinkProps } from '@tanstack/react-router';
+import { useNavigate, useRouterState, type LinkProps } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import type { IconType } from 'react-icons';
 import { LuFileText, LuHeadset, LuHeart, LuHouse, LuMenu, LuSearch, LuSettings, LuSparkles } from 'react-icons/lu';
@@ -25,10 +25,13 @@ const navItems: {
 const Sidebar = () => {
     const navigate = useNavigate();
     const {currentUser} = useAuth();
-    const [trending,setTrending] = useState<WarehouseInterface[]>();
-    const [newest,setNewest] = useState<WarehouseInterface[]>();
+    const routerState = useRouterState();
+    const currentPath = routerState.location.pathname;
+    const activeItem = navItems.find((item) => item.link === currentPath);
+    const active = currentPath === '/settings' ? 'Settings' : (activeItem ? activeItem.label : 'Find Rentals');
+    const [trending,setTrending] = useState<WarehouseResponse[]>();
+    const [newest,setNewest] = useState<WarehouseResponse[]>();
 
-    const [active, setActive] = useState('Find Rentals');
     const [isOpen, setIsOpen] = useState(false);
 
     const isSeller = currentUser?.userType === 'SELLER_ROLE';
@@ -72,7 +75,6 @@ const Sidebar = () => {
                             key={label}
                             as="button"
                             onClick={() => {
-                                setActive(label)
                                 handleNav(link)
                             }}
                             alignItems="center"
@@ -137,7 +139,6 @@ const Sidebar = () => {
                 borderTop="1px solid"
                 borderColor="gray.200"
                 onClick={() => {
-                    setActive('Settings');
                     handleNav('/settings');
                 }}
                 alignItems="center"

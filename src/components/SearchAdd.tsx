@@ -3,8 +3,8 @@ import { useAuth } from "@/lib/provider";
 import { Button, CloseButton, Flex, Input, InputGroup } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuPlus, LuSearch } from "react-icons/lu";
-import CreateWarehouse from "./CreateWarehouse";
 import { FilterMenu, type Filters } from "./Filter";
+import CreateWarehouse from "./Warehouse/CreateWarehouse";
 
 const SearchBar = () => {
     const { currentUser } = useAuth();

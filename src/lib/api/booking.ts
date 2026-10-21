@@ -2,13 +2,14 @@ import { api } from '../axios';
 
 interface BookingRequest {
     storageId: string,
-    unitNumber: string,
-    startDate: Date,
-    endDate: Date
+    rentedVolumeCubicMeter: number,
+    rentedWeightKg: number,
+    startDate: string,
+    endDate: string
 }
 
 export const createBooking = async (request: BookingRequest) => {
-    const req = await api.post(`/bookings/create`, {request})
+    const req = await api.post(`/bookings/create`, request)
     return req.data;
 }
 

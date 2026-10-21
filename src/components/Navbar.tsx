@@ -1,6 +1,8 @@
 import { pageTitles } from '@/constant';
+import { getMyWarehouse } from '@/lib/api/warehouse';
 import useProfile from '@/lib/hooks/useProfile';
 import { useAuth } from '@/lib/provider';
+import { qk } from '@/lib/queryKeys';
 import type { ApiError } from '@/types';
 import {
     Avatar,
@@ -11,6 +13,7 @@ import {
     Portal,
     Text
 } from '@chakra-ui/react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import axios from 'axios';
 import { useState } from 'react';
@@ -19,10 +22,16 @@ import { FaBell } from 'react-icons/fa';
 const Navbar = () => {
     const location = useLocation()
     const navigate = useNavigate()
-    const {data: profile } = useProfile();
+    const { profile,user } = useProfile();
     const { logout } = useAuth();
     const [error, setError] = useState<string | null>(null);
-    
+
+    const { data: warehouse = [], isLoading } = useQuery({
+        queryKey: qk.warehousesAll,
+        queryFn: () => getMyWarehouse(),
+        staleTime: 1000 * 60 * 5,
+    });
+
     const current = pageTitles[location.pathname] ?? {
         title: 'Warehouse Marketplace',
         subtitle: 'Browse verified industrial spaces, check real-time availability, and book leases',
@@ -76,20 +85,21 @@ const Navbar = () => {
             </Flex>
 
             <Flex alignItems='center' gap={{ base: 2, md: 6 }} flexShrink={0}>
-                <Box 
+                { user?.userType == "SELLER_ROLE" &&
+                    <Box 
                     display={{base:'none',md:'block'}}
                     cursor='pointer' 
                     px={{ base: 2, md: 3 }}
                     py={1.5} 
                     borderRadius='xl' 
-                    bg='green.200'
+                    bg={warehouse.length > 0 ? 'green.200' : 'gray.200'}
                     transition='background 0.2s'
                 >
                     <Text fontSize='sm' fontWeight='medium' color='gray.700'>
                         <Box as='span' display={{ base: 'none', sm: 'inline' }}>Active Rentals </Box>
-                        2
+                        {isLoading ? "..." : warehouse.length}
                     </Text>
-                </Box>
+                </Box>}
 
                 <IconButton
                         position="relative"

@@ -5,15 +5,16 @@ import { getStorageByWarehouseId } from '@/lib/api/storage'
 import { getWarehouseById } from '@/lib/api/warehouse'
 import { qk } from '@/lib/queryKeys'
 import type { StorageResponse } from '@/types'
+import { peso, toLabel } from '@/utils/helpers'
 import { Badge, Box, Button, Link as ChakraLink, DateInput, DatePicker, Flex, Grid, Heading, HStack, IconButton, NativeSelect, NumberInput, Portal, Stack, Text, useDateInput } from '@chakra-ui/react'
 import { getLocalTimeZone, today, type DateValue } from '@internationalized/date'
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute, Link as RouterLink } from '@tanstack/react-router'
+import { createFileRoute, Link as RouterLink, useNavigate } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import type { IconType } from 'react-icons'
 import { LuCalendar, LuCheck, LuChevronLeft, LuEye, LuMinus, LuMountainSnow, LuPlus, LuWeight } from 'react-icons/lu'
 
-export const Route = createFileRoute('/_authenticated/$warehouseId')({
+export const Route = createFileRoute('/_authenticated/$warehouseId/')({
   component: RouteComponent,
   loader: ({context: {queryClient},params}) => queryClient.query({
     queryKey:qk.warehouses(params.warehouseId),
@@ -24,17 +25,17 @@ export const Route = createFileRoute('/_authenticated/$warehouseId')({
 
 const MIN_MONTHS = 1
 const MAX_MONTHS = 12
-const toLabel = (t: string) =>t.toLowerCase().split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
-const peso = (n: number) => `₱${n.toLocaleString('en-PH', { maximumFractionDigits: 2 })}`
 
 function RouteComponent() {
   const { warehouseId } = Route.useParams()
   const queryClient = useQueryClient()
+  const navigate = useNavigate();
 
   const [filter, setFilter] = useState<MaterialType | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [startDate, setStartDate] = useState<DateInput.DateValue[]>([])
+
   const [months, setMonths] = useState(MIN_MONTHS)
   const [volume, setVolume] = useState('')
   const [weight, setWeight] = useState('')
@@ -105,22 +106,36 @@ function RouteComponent() {
     bookingMutation.reset()
   }
 
-  const handleBookAnother = () => {
-    bookingMutation.reset()
-    setSelectedId(null)
-    resetForm()
-  }
+    const handleSubmit = () => {
+        if (!selected || !start || invalid) return;
 
-  const handleSubmit = () => {
-    if (!selected || !start || invalid) return
-    bookingMutation.mutate({
-      storageId: selected.storageId,
-      startDate: start.toString(),
-      endDate: start.add({ months }).toString(),
-      rentedVolumeCubicMeter: volumeNum,
-      rentedWeightKg: weightNum,
-    })
-  }
+        const bookingData = {
+            storageId: selected.storageId,
+            storage: selected,
+            warehouse: warehouse,
+            startDate: start.toString(),
+            endDate: start.add({ months }).toString(),
+            months: months,
+            weight: weight,
+            volume: volume,
+            unitPrice: unitPrice,
+            rentedVolumeCubicMeter: volumeNum,
+            rentedWeightKg: weightNum,
+        };
+
+        sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
+
+        navigate({
+            to: "/$warehouseId/lease-agree",
+            params: { warehouseId: warehouseId},
+        })
+    };
+
+    const handleBookAnother = () => {
+        bookingMutation.reset()
+        setSelectedId(null)
+        resetForm()
+    }
 
   return (
     <Flex flexDir="column" gap={4} w="100%">
@@ -390,7 +405,7 @@ function RouteComponent() {
                 loading={bookingMutation.isPending}
                 onClick={handleSubmit}
               >
-                Book now
+                Review now
               </Button>
               <Button variant="outline">Contact warehouse</Button>
               <Text fontSize="xs" color="fg.muted" textAlign="center">

@@ -62,4 +62,16 @@ export const MATERIAL_TYPES = [
     "DOCUMENTS_ARCHIVES",
 ] as const;
 
+export const BookingStatus = {
+    PENDING_TERMS: { value: "PENDING_TERMS", color: "orange" },
+    PENDING_PAYMENT: {value: "PENDING_PAYMENT", color: "orange"},
+    REJECTED: { value: "REJECTED", color: "red" },
+    HELD: { value: "HELD", color: "yellow" },
+    CONFIRMED: { value: "CONFIRMED", color: "green" },
+    CANCELLED: { value: "CANCELLED", color: "red" },
+    EXPIRED: { value: "EXPIRED", color: "red" },
+    COMPLETED: { value: "COMPLETED", color: "gray" },
+} as const;
+
 export type MaterialType = (typeof MATERIAL_TYPES)[number];
+export type BookingStatus = keyof typeof BookingStatus;

@@ -5,7 +5,7 @@ import { Drawer, Flex, IconButton, Portal, Text, VStack } from '@chakra-ui/react
 import { useNavigate, useRouterState, type LinkProps } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import type { IconType } from 'react-icons';
-import { LuFileText, LuHeadset, LuHeart, LuHouse, LuMenu, LuSearch, LuSettings, LuSparkles } from 'react-icons/lu';
+import { LuHeadset, LuHeart, LuHouse, LuMenu, LuSearch, LuSettings, LuSparkles } from 'react-icons/lu';
 import { MdLeaderboard, MdTrendingUp } from 'react-icons/md';
 import CollapsableNav from './CollapsableNav';
 import EmptyState from './EmptyState';
@@ -17,9 +17,8 @@ const navItems: {
     sellerOnly?: boolean;
 }[] = [
     { label: 'Find Rentals', link: '/', icon: LuSearch },
-    { label: 'My Rentals', link: '/my-rental', icon: LuHouse, sellerOnly: true },
+    { label: 'My Rentals', link: '/my-rental', icon: LuHouse },
     { label: 'Saved Warehouses', link: '/saved-rental', icon: LuHeart },
-    { label: 'Lease Agreements', link: '/lease-agree', icon: LuFileText },
     { label: 'Support & Inquiries', link: '/supp-inq', icon: LuHeadset },
 ];
 const Sidebar = () => {
@@ -105,7 +104,7 @@ const Sidebar = () => {
                     title="Top by Views"
                     icon={<MdLeaderboard />}
                     items={
-                    newest?.length ? (
+                    trending?.length ? (
                         trending?.map((t) => ({
                             isActive: false,
                             label: t.name,

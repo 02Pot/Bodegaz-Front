@@ -23,7 +23,7 @@ export const getWarehouseById = async (id: string) => {
 }
 
 export const getMyWarehouse = async () => {
-    const req = await api.get(`/warehouse/my-rental`);
+    const req = await api.get(`/warehouse/me`);
     return req.data
 }
 

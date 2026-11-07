@@ -14,7 +14,6 @@ const emptyForm: WarehouseRequest = {
     name: '',
     warehouseCapacityKg: 0,
     addressLine1: '',
-    addressLine2: '',
     city: '',
     stateProvince: '',
     country: '',
@@ -32,7 +31,6 @@ const validate = (f: WarehouseRequest): Errors => {
     if (!f.warehouseCapacityKg.toLocaleString) e.warehouseCapacityKg = 'Capacity is required'
     else if (!Number.isFinite(cap) || cap <= 0) e.warehouseCapacityKg = 'Capacity must be greater than 0'
     if (!f.addressLine1.trim()) e.addressLine1 = 'Address 1 is required'
-    if (!f.addressLine2?.trim()) e.addressLine2 = 'Address 2 is required'
     if (!f.city.trim()) e.city = 'City is required'
     if (!f.stateProvince.trim()) e.stateProvince = 'State / Province is required'
     if (!f.country.trim()) e.country = 'Country is required'

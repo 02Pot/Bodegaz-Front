@@ -1,5 +1,7 @@
+import { getOwnerBookings } from "@/lib/api/booking";
 import { useDebouncedValue } from "@/lib/hooks/useDebounced";
 import { Box, CloseButton, Flex, Input, InputGroup, SimpleGrid, Table, Tabs, Text } from "@chakra-ui/react";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { LuCalendarSync, LuCheck, LuClipboard, LuHourglass, LuSearch, LuTrash } from "react-icons/lu";
 
@@ -7,7 +9,7 @@ const RentalPanel = () => {
     const [filters, setFilters] = useState("all");
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebouncedValue(search);
-
+    //implement search quuery
     const filteredItems = items.filter((item) => {
     const matchesSearch = [
         item.customer,
@@ -18,14 +20,19 @@ const RentalPanel = () => {
     ].some((value) =>
         value.toLowerCase().includes(debouncedSearch.toLowerCase())
     );
-
     const matchesStatus =
     filters === "all" ||
     item.status.toLowerCase() === filters;
 
     return matchesSearch && matchesStatus;
     });
-    
+
+    const { data: rental , isLoading} = useQuery({
+        queryKey: ["rentals",],
+        queryFn: () => getOwnerBookings(),
+        retry: false
+    })
+
     return(
         <Box spaceY={3}>
             <SimpleGrid columns={5} gap={3}>

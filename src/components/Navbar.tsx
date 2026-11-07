@@ -19,17 +19,22 @@ import axios from 'axios';
 import { useState } from 'react';
 import { FaBell } from 'react-icons/fa';
 
+const EMPTY: never[] = [];
+
 const Navbar = () => {
     const location = useLocation()
     const navigate = useNavigate()
     const { profile,user } = useProfile();
-    const { logout } = useAuth();
+    const { logout,currentUser } = useAuth();
     const [error, setError] = useState<string | null>(null);
+    const isSeller = currentUser?.userType === 'SELLER_ROLE';
 
-    const { data: warehouse = [], isLoading } = useQuery({
+    const { data: warehouse = EMPTY, isLoading } = useQuery({
         queryKey: qk.warehousesAll,
         queryFn: () => getMyWarehouse(),
         staleTime: 1000 * 60 * 5,
+        enabled: isSeller,
+        retry: false,
     });
 
     const current = pageTitles[location.pathname] ?? {

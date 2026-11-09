@@ -64,6 +64,7 @@ export const MATERIAL_TYPES = [
 
 export const BookingStatus = {
     PENDING_TERMS: { value: "PENDING_TERMS", color: "orange" },
+    PENDING_OWNER: {value: "PENDING_OWNER", color: "orange"},
     PENDING_PAYMENT: {value: "PENDING_PAYMENT", color: "orange"},
     REJECTED: { value: "REJECTED", color: "red" },
     HELD: { value: "HELD", color: "yellow" },

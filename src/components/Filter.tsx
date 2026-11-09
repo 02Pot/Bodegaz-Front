@@ -27,7 +27,9 @@ const CAPACITIES = [
     { value: '5000', label: '1,000 - 5,000 kg' },
     { value: '10000', label: '5,000+ kg' },
 ]
+
 const CITIES = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Miami']
+
 const AREA_PRESETS = [
     { label: 'Under 50 m²', min: '', max: '50' },
     { label: '50 - 150 m²', min: '50', max: '150' },
@@ -122,6 +124,7 @@ export const FilterMenu = ({
     }
 
     const apply = () => {
+        console.log('1 apply', draft)
         setApplied(draft)
         onApply?.(draft)
         setOpen(false)
@@ -139,9 +142,9 @@ export const FilterMenu = ({
         <Popover.Root open={open} onOpenChange={(e) => handleOpenChange(e.open)} positioning={{ placement: 'bottom-end' }}>
         <Popover.Trigger asChild>
             <Button variant="outline" size="sm" gap="8px" borderWidth="1px">
-            <LuFilter />
-            Filters
-            {activeCount > 0 && <Badge colorPalette="blue">{activeCount}</Badge>}
+                <LuFilter />
+                Filters
+                {activeCount > 0 && <Badge colorPalette="cyan">{activeCount}</Badge>}
             </Button>
         </Popover.Trigger>
         <Portal>
@@ -150,26 +153,26 @@ export const FilterMenu = ({
                 <Popover.Body maxH="70vh" overflowY="auto">
                 <Stack gap="5">
                     <Section title="Capacity">
-                    <HStack gap="2" wrap="wrap">
-                        {CAPACITIES.map((c) => (
-                        <Chip key={c.value} active={draft.capacity === c.value}
-                            onClick={() => set('capacity', draft.capacity === c.value ? '' : c.value)}>
-                            {c.label}
-                        </Chip>
-                        ))}
-                    </HStack>
+                        <HStack gap="2" wrap="wrap">
+                            {CAPACITIES.map((c) => (
+                            <Chip key={c.value} active={draft.capacity === c.value}
+                                onClick={() => set('capacity', draft.capacity === c.value ? '' : c.value)}>
+                                {c.label}
+                            </Chip>
+                            ))}
+                        </HStack>
                     </Section>
 
-                    <Section title="City">
-                    <HStack gap="2" wrap="wrap">
-                        {CITIES.map((c) => (
-                        <Chip key={c} active={draft.city === c}
-                            onClick={() => set('city', draft.city === c ? '' : c)}>
-                            {c}
-                        </Chip>
-                        ))}
-                    </HStack>
-                    </Section>
+                    {/* <Section title="City">
+                        <HStack gap="2" wrap="wrap">
+                            {CITIES.map((c) => (
+                            <Chip key={c} active={draft.city === c}
+                                onClick={() => set('city', draft.city === c ? '' : c)}>
+                                {c}
+                            </Chip>
+                            ))}
+                        </HStack>
+                    </Section> */}
 
                     <RangeSection title="Area (m²)" presets={AREA_PRESETS}
                     value={draft.area} onChange={(v) => set('area', v)} />
@@ -178,33 +181,33 @@ export const FilterMenu = ({
                     value={draft.budget} onChange={(v) => set('budget', v)} />
 
                     <Section title="Created">
-                    <Stack gap="2">
-                        <HStack gap="2">
-                        {(['newest', 'oldest'] as const).map((order) => (
-                            <Chip key={order} active={draft.sortOrder === order}
-                            onClick={() =>
-                                setDraft((d) => ({
-                                ...d,
-                                sortOrder: d.sortOrder === order ? '' : order,
-                                customDate: '', // sort and exact date are mutually exclusive
-                                }))
-                            }>
-                            {order === 'newest' ? 'Newest first' : 'Oldest first'}
-                            </Chip>
-                        ))}
-                        </HStack>
-                        <Input type="date" size="sm" value={draft.customDate}
-                        onChange={(e) =>
-                            setDraft((d) => ({ ...d, customDate: e.target.value, sortOrder: '' }))
-                        } />
-                    </Stack>
+                        <Stack gap="2">
+                            <HStack gap="2">
+                            {(['newest', 'oldest'] as const).map((order) => (
+                                <Chip key={order} active={draft.sortOrder === order}
+                                onClick={() =>
+                                    setDraft((d) => ({
+                                    ...d,
+                                    sortOrder: d.sortOrder === order ? '' : order,
+                                    customDate: '', // sort and exact date are mutually exclusive
+                                    }))
+                                }>
+                                {order === 'newest' ? 'Newest first' : 'Oldest first'}
+                                </Chip>
+                            ))}
+                            </HStack>
+                            <Input type="date" size="sm" value={draft.customDate}
+                            onChange={(e) =>
+                                setDraft((d) => ({ ...d, customDate: e.target.value, sortOrder: '' }))
+                            } />
+                        </Stack>
                     </Section>
 
                     <HStack justify="space-between" pt="2" borderTopWidth="1px" borderColor="border.subtle">
-                    <Button size="sm" variant="ghost" colorPalette="red" onClick={reset}>
-                        Reset all
-                    </Button>
-                    <Button size="sm" onClick={apply}>Apply</Button>
+                        <Button size="sm" variant="ghost" colorPalette="red" onClick={reset}>
+                            Reset all
+                        </Button>
+                        <Button size="sm" onClick={apply}>Apply</Button>
                     </HStack>
                 </Stack>
                 </Popover.Body>

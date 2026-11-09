@@ -220,6 +220,24 @@ export interface LeaseTemplate {
     updatedAt: string;
 }
 
+export interface OwnerBooking {
+    orderId: string; 
+    unitNumber: string; 
+    startDate: string; 
+    endDate: string;
+    status: string; 
+    rentedVolumeCubicMeter: number; 
+    rentedWeightKg: number;
+    totalPrice: number; 
+    warehouseId: string; 
+    warehouseName: string; 
+    storageId: string;
+    blockName: string; 
+    section: string; 
+    tenantName: string; 
+    tenantEmail: string;
+};
+
 export interface CreateLeaseTemplateRequest {
     name: string;
     config: LeaseTemplateConfig;
@@ -234,11 +252,18 @@ export interface ApiError {
     fieldErrors: Record<string, string> | null;
 }
 
+export interface ScrollResponse<T> {
+    items: T[];
+    nextCursor: string | null;
+    hasNext: boolean;
+}
+
 export type UpdateLeaseTemplateRequest = Partial<CreateLeaseTemplateRequest>;
 
 export type UserType = "SELLER_ROLE" | "BUYER_ROLE" | "";
 export type AuthAction = "OTP_SENT" | "RESUME_ONBOARDING" | "LOGIN_REQUIRED";
 export type Step = "info" | "otp" | "information";
+
 
 export const defaultConfig: LeaseTemplateConfig = {
     termMonths: 12, autoRenew: false, billingCycle: 'MONTHLY', billingDay: 1,

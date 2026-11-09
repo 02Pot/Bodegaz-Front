@@ -50,11 +50,6 @@ const Sidebar = () => {
         fetchTrending()
     },[])
 
-    const handleNav = (path: LinkProps['to']) => {
-        navigate({ to: path });
-        setIsOpen(false);
-    };
-
     const sidebarContent = (
         <Flex flexDir="column" h="100%" px={3} py={6} bg='#f3f3f3' w='100%'>
             <Flex alignItems="center" gap={2.5} px={3} pb={6} borderBottom="1px solid" borderColor="gray.200">
@@ -74,7 +69,8 @@ const Sidebar = () => {
                             key={label}
                             as="button"
                             onClick={() => {
-                                handleNav(link)
+                                navigate({to: link})
+                                setIsOpen(false)
                             }}
                             alignItems="center"
                             gap={3}
@@ -108,7 +104,12 @@ const Sidebar = () => {
                         trending?.map((t) => ({
                             isActive: false,
                             label: t.name,
-                            onClick: () => handleNav('/')
+                            onClick: () => {
+                                navigate({
+                                    to: "/$warehouseId",
+                                    params: { warehouseId: t.warehouseId },
+                                })
+                            }
                         }))
                     ) : (
                         <EmptyState icon={<MdTrendingUp color="C6D2FF" size='48'/>} title={'No popular warehouse'}/>
@@ -124,7 +125,12 @@ const Sidebar = () => {
                             newest?.map((n) => ({
                                 isActive: false,
                                 label: n.name,
-                                onClick: () => handleNav('/')
+                                onClick: () => {
+                                    navigate({
+                                        to: "/$warehouseId",
+                                        params: { warehouseId: n.warehouseId },
+                                    })
+                                }
                             }))
                         ) : (
                             <EmptyState icon={<LuSparkles color="C6D2FF" size='48'/>} title={'No new additions'}/>
@@ -138,7 +144,7 @@ const Sidebar = () => {
                 borderTop="1px solid"
                 borderColor="gray.200"
                 onClick={() => {
-                    handleNav('/settings');
+                    navigate({to: "/settings"});
                 }}
                 alignItems="center"
                 gap={3}

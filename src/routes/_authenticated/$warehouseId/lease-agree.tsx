@@ -18,12 +18,12 @@ function RouteComponent() {
   const { warehouseId } = Route.useParams();
   const navigate = useNavigate();
   const [bookingData] = useState(() => {
-  const storedData = sessionStorage.getItem("pendingBooking");
-    return storedData ? JSON.parse(storedData) : null;
+    const storedData = sessionStorage.getItem("pendingBooking");
+      return storedData ? JSON.parse(storedData) : null;
   });
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
-  const bookingIdRef = useRef<string | undefined>(undefined)
+  const bookingIdRef = useRef<string | undefined>(bookingData?.orderId)
 
   const request = useMemo<BookingRequest>(
     () => bookingData && {
@@ -37,28 +37,26 @@ function RouteComponent() {
   )
 
   const bookingMutation = useMutation<AcceptTermsResponse, AxiosError<{ message?: string }>, string>({
-  mutationFn: async () => {
-    bookingIdRef.current ??= (await createBooking(bookingData)).orderId
-    const id = bookingIdRef.current
-    const lease = await getLease(id!)
-    return acceptTerms(id!, { agreed: true, termsHash: lease.termsHash })
-  },
-  onSuccess: () => {
-    sessionStorage.removeItem('pendingBooking')
-    queryClient.invalidateQueries({ queryKey: qk.storages(warehouseId) })
-    navigate({ to: '/' })
-  },
-  onError: (e) => {
-    if (e.response?.status === 409 && !bookingIdRef.current) {
-      queryClient.invalidateQueries({ queryKey: ['lease-preview'] })
-    }
-  },
-})
+    mutationFn: async () => {
+      bookingIdRef.current ??= (await createBooking(bookingData)).orderId
+      const id = bookingIdRef.current
+      const lease = await getLease(id!)
+      return acceptTerms(id!, { agreed: true, termsHash: lease.termsHash })
+    },
+    onSuccess: () => {
+      sessionStorage.removeItem('pendingBooking')
+      queryClient.invalidateQueries({ queryKey: qk.storages(warehouseId) })
+      navigate({ to: '/' })
+    },
+    onError: (e) => {
+      if (e.response?.status === 409 && !bookingIdRef.current) {
+        queryClient.invalidateQueries({ queryKey: ['lease-preview'] })
+      }
+    },
+  })
 
-  const handleDecline = () => {
-    navigate({ to: '/$warehouseId', params: { warehouseId } })
-  }
-
+  console.log(request)
+  console.log(bookingData)
   const warehouse = bookingData.warehouse
 
   return (
@@ -122,7 +120,7 @@ function RouteComponent() {
       <Flex justify="flex-end" gap={3}>
         <Button
           variant="outline"
-          onClick={handleDecline}
+          onClick={() => navigate({ to: '/$warehouseId', params: { warehouseId } })}
           disabled={bookingMutation.isPending}
         >
           Decline

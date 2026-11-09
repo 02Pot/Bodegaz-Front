@@ -41,7 +41,7 @@ const Warehouse = ({
                 overflow="hidden"
                 boxShadow="sm"
             >
-                <Skeleton h={{ base: "150px", md: "180px" }} />
+                <Skeleton h={{ base: "150px", sm: "170px", md: "180px" }} />
 
                 <Flex flexDir="column" p={{ base: 4, md: 5 }} gap={5}>
                     <Box>
@@ -64,7 +64,7 @@ const Warehouse = ({
                         gap={4}
                         flexWrap="wrap"
                     >
-                        <Box flex="1" minW="120px">
+                        <Box flex="1">
                             <Skeleton
                                 height="12px"
                                 width="70px"
@@ -76,7 +76,7 @@ const Warehouse = ({
                             />
                         </Box>
 
-                        <Box flex="1" minW="120px">
+                        <Box flex="1" >
                             <Skeleton
                                 height="12px"
                                 width="110px"
@@ -267,30 +267,27 @@ const Warehouse = ({
 
                 <Flex
                     mt="auto"
-                    gap={3}
+                    gap={2}
                     pt={4}
                     borderTop="1px solid"
                     borderColor="gray.100"
-                    flexDir={{ base: "column", md: "row" }}
                 >
                     <Button
-                        flex={1}
+                        flex="1"
                         variant="outline"
-                        size={{ base: "sm", md: "md" }}
+                        size="sm"
+                        whiteSpace="nowrap"
                         onClick={() => {
                             navigate({
                                 to: "/$warehouseId",
-                                params: {warehouseId: warehouse?.warehouseId ?? ''},
+                                params: { warehouseId: warehouse?.warehouseId ?? '' },
                             })
                         }}
                     >
                         Inspect Details
                     </Button>
 
-                    <Button
-                        flex={1}
-                        size={{ base: "sm", md: "md" }}
-                    >
+                    <Button flex="1" size="sm" whiteSpace="nowrap">
                         Contact
                     </Button>
                 </Flex>

@@ -23,8 +23,8 @@ export const getCapacity = async (storageId:string,startDate:Date,endDate:Date) 
     return req.data
 }
 
-export const getBookings = async () => {
-    const req = await api.get(`/bookings/my-bookings`)
+export const getBookings = async ({ cursor, limit = 10 }: { cursor?: string; limit?: number } = {}) => {
+    const req = await api.get(`/bookings/my-bookings`, { params: { cursor, limit } })
     return req.data
 }
 
@@ -33,7 +33,10 @@ export const getStorageBooking = async (storageId: string) => {
     return req.data
 }
 
-export const getOwnerBookings = async () => {
-    const req = await api.get(`/bookings/owner`)
+export const getOwnerBookings = async ({ page, size, search, status }: { page: number; size: number; search?: string; status?: string}) => {
+    const req = await api.get(`/bookings/owner`, {params: {page,size,search: search || undefined,status: status && status !== "all" ? status : undefined,},})
     return req.data
 }
+
+export const getOwnerBookingStats = async (): Promise<{active: number; pending: number; total: number; endingSoon: number; revenue: number}> => (
+    await api.get(`/bookings/owner/stats`)).data

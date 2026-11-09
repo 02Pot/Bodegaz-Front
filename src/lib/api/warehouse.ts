@@ -1,3 +1,4 @@
+import type { Filters } from '@/components/Filter';
 import type { WarehouseEditValues } from '@/components/Warehouse/EditWarehouse';
 import { api } from '../axios';
 
@@ -12,10 +13,36 @@ interface WarehouseRequest {
     postalCode: string
 }
 
-export const getFeedWarehouses = async ({ size = 10, cursor }: { size?: number; cursor?: string }) => {
-    const req = await api.get(`/warehouse/all`, {params: {cursor,size}});
-    return req.data;
-};
+const toFilterParams = (f?: Filters) => {
+    if (!f) return {}
+    const capacityRanges: Record<string, { min?: string; max?: string }> = {
+        '1000': { max: '1000' },
+        '5000': { min: '1000', max: '5000' },
+        '10000': { min: '5000' },
+    }
+    const cap = capacityRanges[f.capacity] ?? {}
+
+    return {
+        city: f.city || undefined,
+        capacityMin: cap.min,
+        capacityMax: cap.max,
+        areaMin: f.area.min || undefined,
+        areaMax: f.area.max || undefined,
+        budgetMin: f.budget.min || undefined,
+        budgetMax: f.budget.max || undefined,
+        sortOrder: f.sortOrder || undefined,
+        createdOn: f.customDate || undefined,
+    }
+}
+
+export const getFeedWarehouses = async ({ size = 10, cursor, search, filters }: {
+    size?: number; cursor?: string; search?: string; filters?: Filters
+}) => {
+    const req = await api.get(`/warehouse/all`, {
+        params: { cursor, size, search: search || undefined, ...toFilterParams(filters) },
+    })
+    return req.data
+}
 
 export const getWarehouseById = async (id: string) => {
     const req = await api.get(`/warehouse/${id}`);

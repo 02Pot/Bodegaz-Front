@@ -1,32 +1,51 @@
 import EmptyState from '@/components/EmptyState';
+import type { Filters } from '@/components/Filter';
 import InfiniteScroll from '@/components/InfiniteScroll';
 import SearchBar from '@/components/SearchAdd';
 import Warehouse from '@/components/Warehouse/Warehouse';
 import { getSavedWarehouses, saveWarehouse, unsaveWarehouse } from '@/lib/api/savedwarehouse';
 import type { ApiError, WarehouseResponse } from '@/types';
 import { Box, Flex, Grid, Text } from '@chakra-ui/react';
-import { infiniteQueryOptions, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
+import { infiniteQueryOptions, keepPreviousData, useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import axios from 'axios';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export const Route = createFileRoute('/_authenticated/saved-rental')({
   component: RouteComponent,
-  loader: ({context: {queryClient}}) => queryClient.infiniteQuery(feedQueryOptions),
+  loader: ({context: {queryClient}}) => queryClient.infiniteQuery(feedQueryOptions()),
 })
 
 type Page = Awaited<ReturnType<typeof getSavedWarehouses>>
 
+const feedQueryOptions = (search = '', filters?: Filters) => 
+  infiniteQueryOptions({
+    queryKey: ['warehouses', 'saved', {search,filters}],
+    queryFn: ({ pageParam }) => getSavedWarehouses({ size: 10, cursor: pageParam,search,filters }),
+    staleTime: 5 * 60 * 1000,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
+  })
+
 function RouteComponent() {
-  const { data,fetchNextPage,hasNextPage,isFetchingNextPage,isError,error} = useInfiniteQuery({...feedQueryOptions,refetchOnWindowFocus:false})
+  const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState<Filters>()
+  const options = feedQueryOptions(search, filters)
+  const queryClient = useQueryClient()
+  const queryKey = options.queryKey
+  
+  const { data,fetchNextPage,hasNextPage,isFetchingNextPage,isLoading, isPlaceholderData,isError,error} = 
+    useInfiniteQuery({
+      ...options,
+      refetchOnWindowFocus: false,
+      placeholderData: keepPreviousData
+    })
 
   const warehouses = useMemo(
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data]
   )
-
-  const queryClient = useQueryClient()
-  const queryKey = ['warehouses']
 
   const isEmpty = warehouses.length === 0
 
@@ -78,7 +97,7 @@ function RouteComponent() {
     <>
       <Flex w='100%' height='100%' gap='12px'>
         <Box flex={'1'} minW={0}>
-          <SearchBar/>
+          <SearchBar onSearch={setSearch} onFilters={setFilters} />
           {errorMessage && <Text>{errorMessage}</Text>}
           <Grid
             alignContent='start'
@@ -89,8 +108,9 @@ function RouteComponent() {
             rowGap="8px"
             columnGap="16px"
             padding={{ base: '12px 0px 0px', md: '24px 24px 0px' }}
+            opacity={isPlaceholderData ? 0.6 : 1}
           >
-            {isFetchingNextPage ? (
+            {isLoading ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <Warehouse key={i} loading />
               ))
@@ -101,7 +121,6 @@ function RouteComponent() {
                 <Warehouse 
                   key={w.warehouseId}
                   warehouse={w}
-                  loading={false}
                   isSaved={w.saved}
                   toggleSave={toggleSave}/>
               ))
@@ -125,12 +144,3 @@ function RouteComponent() {
     </>
   )
 }
-
-const feedQueryOptions = infiniteQueryOptions({
-  queryKey: ['warehouses', 'saved'],
-  queryFn: ({ pageParam }) => getSavedWarehouses({ size: 10, cursor: pageParam }),
-  staleTime: 5 * 60 * 1000,
-  initialPageParam: undefined as string | undefined,
-  getNextPageParam: (lastPage) =>
-    lastPage.hasNext ? (lastPage.nextCursor ?? undefined) : undefined,
-})

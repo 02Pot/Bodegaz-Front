@@ -4,13 +4,14 @@ import WarehousesPanel from '@/components/Warehouse/WarehousePanel';
 import { BASE_URL, BookingStatus } from '@/constant';
 import { getBookings } from '@/lib/api/booking';
 import { getMyWarehouse } from '@/lib/api/warehouse';
+import useInfiniteScroll from '@/lib/hooks/useInfiniteScroll';
 import { useAuth } from '@/lib/provider';
 import { qk } from '@/lib/queryKeys';
-import type { BookingsResponse } from '@/types';
+import type { ScrollResponse } from '@/types';
 import { fmtDate, peso } from '@/utils/helpers';
 import { Badge, Box, Carousel, Center, Flex, IconButton, Image, SimpleGrid, Stack, Tabs, Text } from "@chakra-ui/react";
-import { queryOptions, useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { infiniteQueryOptions, queryOptions, useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import { LuCalendar, LuChevronDown, LuClipboardList, LuSparkles, LuWarehouse } from "react-icons/lu";
 
@@ -25,11 +26,13 @@ const sellerWarehouseOptions = queryOptions({
   retry: false
 })
 
-const buyerWarehouseOptions = queryOptions({
+const buyerWarehouseOptions = infiniteQueryOptions({
   queryKey: ["bookings", "mine"],
-  queryFn: () => getBookings(),
+  queryFn: ({ pageParam }): Promise<ScrollResponse<any>> => getBookings({ cursor: pageParam }),
+  initialPageParam: undefined as string | undefined,
+  getNextPageParam: (last) => (last.hasNext && last.nextCursor) ? last.nextCursor : undefined,
   staleTime: 1000 * 60 * 5,
-  retry: false
+  retry: false,
 })
 
 function RouteComponent() {
@@ -64,21 +67,33 @@ function RouteComponent() {
 }
 
 function MyBookingsPanel() {
-  const { data: bookings = [], isLoading, isError } = useQuery(buyerWarehouseOptions)
+  const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery(buyerWarehouseOptions)
+  const bookings = data?.pages.flatMap((p) => p.items) ?? []
+  const navigate = useNavigate();
+
+  const loadMoreRef = useInfiniteScroll({
+    onLoadMore: () => fetchNextPage(),
+    hasMore: !!hasNextPage,
+    isLoading: isFetchingNextPage,
+  })
 
   if (isLoading) return <Text color="fg.muted">Loading your bookings…</Text>
   if (isError) return <Text>Couldn’t load your bookings. Refresh to try again.</Text>
   if (bookings.length === 0) {
-    return <EmptyState icon={<LuSparkles color="C6D2FF" size='48'/>} title={'You haven’t booked any storage yet. Browse the feed to find a unit.'}/>
+    return <EmptyState icon={<LuSparkles color="#C6D2FF" size='48'/>} title={'You haven’t booked any storage yet. Browse the feed to find a unit.'}/>
   }
 
   return (
     <Stack gap={4} pt={4}>
-      {bookings.map((b: BookingsResponse) => {
+      {bookings.map((b: any) => {
         const warehouse = b.warehouse;
         const storage = b.storage;
         const address = warehouse.address;
         const images = warehouse?.imageUrls ?? [];
+
+        const rentedWeight = b.rentedWeightKg
+        const rentedVolume = b.rentedVolumeCubicMeter
+        const storageId = storage.storageId
 
         const fullAddress = [
           address.addressLine1,
@@ -97,7 +112,21 @@ function MyBookingsPanel() {
             rounded="xl"
             overflow="hidden"
             bg="bg"
-          >
+            _hover={{
+              borderColor: "#c2c2c2",
+              shadow: "md",
+              transform: "translateY(-2px)",
+            }}
+            onClick={() => {
+              sessionStorage.setItem("pendingBooking", JSON.stringify({
+                ...b,
+                storageId,
+                weight: rentedWeight,
+                volume: rentedVolume,
+              }));
+              navigate({ to: `/${warehouse.warehouseId}/lease-agree` });
+            }}
+            >
             <Box
               position="relative"
               w={{ base: "100%", md: "260px" }}
@@ -220,6 +249,8 @@ function MyBookingsPanel() {
           </Flex>
         );
       })}
+      <Box ref={loadMoreRef} />
+      {isFetchingNextPage && <Text color="fg.muted" textAlign="center">Loading more…</Text>}
     </Stack>
   );
 }

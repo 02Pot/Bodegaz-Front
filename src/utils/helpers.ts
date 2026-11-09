@@ -1,5 +1,4 @@
 import type { MaterialType } from "@/constant";
-import { parseDate } from "@internationalized/date";
 
 export const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -15,6 +14,4 @@ export const materialLabel = (m: MaterialType) =>
 export const toLabel = (t: string) =>t.toLowerCase().split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
 export const peso = (n: number) => `₱${n.toLocaleString('en-PH', { maximumFractionDigits: 2 })}`
 
-export const fmtDate = (iso: string) => {
-  return parseDate(iso.slice(0, 10)).toString();
-};
+export const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });

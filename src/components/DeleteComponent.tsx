@@ -1,18 +1,18 @@
-import { Button, Dialog, Portal } from "@chakra-ui/react";
+import { Button, Dialog, Portal } from '@chakra-ui/react'
 
 type Props = {
-    open: boolean;
-    title?: string;
-    description?: string;
-    loading?: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
-};
+    open: boolean
+    title?: string
+    description?: string
+    loading?: boolean
+    onClose: () => void
+    onConfirm: () => void
+}
 
 export const DeleteConfirmationDialog = ({
     open,
-    title = "Are you sure?",
-    description = "This action cannot be undone.",
+    title = 'Are you sure?',
+    description = 'This action cannot be undone.',
     loading = false,
     onClose,
     onConfirm,
@@ -32,10 +32,18 @@ export const DeleteConfirmationDialog = ({
                     </Dialog.Header>
                     <Dialog.Body>{description}</Dialog.Body>
                     <Dialog.Footer>
-                        <Button variant="outline" onClick={onClose} disabled={loading}>
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={loading}
+                        >
                             Cancel
                         </Button>
-                        <Button colorPalette="red" onClick={onConfirm} loading={loading}>
+                        <Button
+                            colorPalette="red"
+                            onClick={onConfirm}
+                            loading={loading}
+                        >
                             Delete
                         </Button>
                     </Dialog.Footer>
@@ -43,4 +51,4 @@ export const DeleteConfirmationDialog = ({
             </Dialog.Positioner>
         </Portal>
     </Dialog.Root>
-);
+)

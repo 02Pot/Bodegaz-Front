@@ -1,5 +1,5 @@
-import { BASE_URL } from "@/constant";
-import type { SellerWarehouseResponse, WarehouseImageResponse } from "@/types";
+import { BASE_URL } from '@/constant'
+import type { SellerWarehouseResponse, WarehouseImageResponse } from '@/types'
 import {
     Box,
     Button,
@@ -11,138 +11,126 @@ import {
     SimpleGrid,
     Stack,
     Text,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { LuTrash } from "react-icons/lu";
+} from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import { LuTrash } from 'react-icons/lu'
 
 export type WarehouseEditValues = {
-    name?: string;
-    warehouseCapacityKg?: number;
-};
+    name?: string
+    warehouseCapacityKg?: number
+}
 
 type Props = {
-    warehouse: SellerWarehouseResponse;
-    open: boolean;
-    onClose: () => void;
+    warehouse: SellerWarehouseResponse
+    open: boolean
+    onClose: () => void
     onSubmit: (
         values: WarehouseEditValues,
         newFiles: File[],
         removeImageIds: string[]
-    ) => Promise<void>;
-};
+    ) => Promise<void>
+}
 
-const EditWarehouseDialog = ({
-    warehouse,
-    open,
-    onClose,
-    onSubmit,
-}: Props) => {
-    const [name, setName] = useState(warehouse.name);
-    const [capacity, setCapacity] = useState(
-        warehouse.warehouseCapacityKg
-    );
+const EditWarehouseDialog = ({ warehouse, open, onClose, onSubmit }: Props) => {
+    const [name, setName] = useState(warehouse.name)
+    const [capacity, setCapacity] = useState(warehouse.warehouseCapacityKg)
 
-    const [currentImages, setCurrentImages] = useState<WarehouseImageResponse[]>(
-        warehouse.images ?? []
-    );
-    const [removeImageIds, setRemoveImageIds] = useState<string[]>([]);
-    const [newFiles, setNewFiles] = useState<File[]>([]);
-    const [newPreviews, setNewPreviews] = useState<string[]>([]);
+    const [currentImages, setCurrentImages] = useState<
+        WarehouseImageResponse[]
+    >(warehouse.images ?? [])
+    const [removeImageIds, setRemoveImageIds] = useState<string[]>([])
+    const [newFiles, setNewFiles] = useState<File[]>([])
+    const [newPreviews, setNewPreviews] = useState<string[]>([])
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [saving, setSaving] = useState(false);
-    const [serverError, setServerError] = useState("");
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [saving, setSaving] = useState(false)
+    const [serverError, setServerError] = useState('')
 
-    const allocatedKg = warehouse.allocatedKg ?? 0;
+    const allocatedKg = warehouse.allocatedKg ?? 0
 
     useEffect(() => {
         return () => {
-            newPreviews.forEach((preview) => URL.revokeObjectURL(preview));
-        };
-    }, [newPreviews]);
+            newPreviews.forEach((preview) => URL.revokeObjectURL(preview))
+        }
+    }, [newPreviews])
 
     const handleRemoveExisting = (id: string) => {
-        setCurrentImages((prev) => prev.filter((img) => img.imageId !== id));
-        setRemoveImageIds((prev) =>
-            prev.includes(id) ? prev : [...prev, id]
-        );
-    };
+        setCurrentImages((prev) => prev.filter((img) => img.imageId !== id))
+        setRemoveImageIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    }
 
-    const handleFileChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const files = Array.from(e.target.files ?? []);
-        if (files.length === 0) return;
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files ?? [])
+        if (files.length === 0) return
 
-        setNewFiles((prev) => [...prev, ...files]);
+        setNewFiles((prev) => [...prev, ...files])
         setNewPreviews((prev) => [
             ...prev,
             ...files.map((file) => URL.createObjectURL(file)),
-        ]);
+        ])
 
-        e.target.value = "";
-    };
+        e.target.value = ''
+    }
 
     const handleRemoveNewFile = (index: number) => {
-        setNewFiles((prev) => prev.filter((_, i) => i !== index));
+        setNewFiles((prev) => prev.filter((_, i) => i !== index))
 
         setNewPreviews((prev) => {
-            const preview = prev[index];
+            const preview = prev[index]
 
-            if (preview) URL.revokeObjectURL(preview);
+            if (preview) URL.revokeObjectURL(preview)
 
-            return prev.filter((_, i) => i !== index);
-        });
-    };
+            return prev.filter((_, i) => i !== index)
+        })
+    }
 
-    const trimmedName = name.trim();
+    const trimmedName = name.trim()
 
-    const patch: WarehouseEditValues = {};
+    const patch: WarehouseEditValues = {}
     if (trimmedName !== warehouse.name) {
-        patch.name = trimmedName;
+        patch.name = trimmedName
     }
     if (capacity !== warehouse.warehouseCapacityKg) {
-        patch.warehouseCapacityKg = capacity;
+        patch.warehouseCapacityKg = capacity
     }
 
     const hasChanges =
         Object.keys(patch).length > 0 ||
         newFiles.length > 0 ||
-        removeImageIds.length > 0;
+        removeImageIds.length > 0
 
     const submit = async () => {
-        const validationErrors: Record<string, string> = {};
+        const validationErrors: Record<string, string> = {}
 
         if (!trimmedName) {
-            validationErrors.name = "Enter a warehouse name";
+            validationErrors.name = 'Enter a warehouse name'
         }
         if (!(capacity > 0)) {
-            validationErrors.capacity = "Enter a capacity greater than 0";
+            validationErrors.capacity = 'Enter a capacity greater than 0'
         } else if (capacity < allocatedKg) {
-            validationErrors.capacity =
-                `${allocatedKg} kg is already assigned to storages`;
+            validationErrors.capacity = `${allocatedKg} kg is already assigned to storages`
         }
 
-        setErrors(validationErrors);
-        if (Object.keys(validationErrors).length > 0) return;
+        setErrors(validationErrors)
+        if (Object.keys(validationErrors).length > 0) return
 
         if (!hasChanges) {
-            onClose();
-            return;
+            onClose()
+            return
         }
 
-        setSaving(true);
-        setServerError("");
+        setSaving(true)
+        setServerError('')
 
         try {
-            await onSubmit(patch, newFiles, removeImageIds);
-            onClose();
+            await onSubmit(patch, newFiles, removeImageIds)
+            onClose()
         } catch (err) {
-            console.error(err);
+            console.error(err)
         } finally {
-            setSaving(false);
+            setSaving(false)
         }
-    };
+    }
 
     return (
         <Dialog.Root
@@ -183,16 +171,14 @@ const EditWarehouseDialog = ({
                                     <Input
                                         type="number"
                                         min={1}
-                                        value={capacity || ""}
+                                        value={capacity || ''}
                                         onChange={(e) =>
-                                            setCapacity(
-                                                Number(e.target.value)
-                                            )
+                                            setCapacity(Number(e.target.value))
                                         }
                                     />
                                     <Field.HelperText>
-                                        {allocatedKg} kg currently assigned
-                                        to storages
+                                        {allocatedKg} kg currently assigned to
+                                        storages
                                     </Field.HelperText>
                                     <Field.ErrorText>
                                         {errors.capacity}
@@ -205,10 +191,7 @@ const EditWarehouseDialog = ({
                                     </Text>
 
                                     {currentImages.length === 0 ? (
-                                        <Text
-                                            fontSize="xs"
-                                            color="fg.muted"
-                                        >
+                                        <Text fontSize="xs" color="fg.muted">
                                             No images uploaded
                                         </Text>
                                     ) : (
@@ -263,11 +246,7 @@ const EditWarehouseDialog = ({
                                     </Field.Root>
 
                                     {newPreviews.length > 0 && (
-                                        <SimpleGrid
-                                            columns={4}
-                                            gap={2}
-                                            mt={2}
-                                        >
+                                        <SimpleGrid columns={4} gap={2} mt={2}>
                                             {newPreviews.map(
                                                 (preview, index) => (
                                                     <Box
@@ -326,7 +305,7 @@ const EditWarehouseDialog = ({
                             <Button
                                 bg="black"
                                 color="white"
-                                _hover={{ bg: "gray.800" }}
+                                _hover={{ bg: 'gray.800' }}
                                 onClick={submit}
                                 loading={saving}
                                 disabled={!hasChanges}
@@ -338,7 +317,7 @@ const EditWarehouseDialog = ({
                 </Dialog.Positioner>
             </Portal>
         </Dialog.Root>
-    );
-};
+    )
+}
 
 export default EditWarehouseDialog

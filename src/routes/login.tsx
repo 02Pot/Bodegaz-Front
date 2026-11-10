@@ -1,79 +1,102 @@
-import { authQueryOptions, useAuth } from '@/lib/provider';
-import type { ApiError, LoginRequest } from '@/types';
-import { Box, Button, Field, Flex, Input, InputGroup, Stack, Text } from '@chakra-ui/react';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
-import axios from 'axios';
-import { useState } from 'react';
-import { LuEye, LuUser } from 'react-icons/lu';
+import { authQueryOptions, useAuth } from '@/lib/provider'
+import type { ApiError, LoginRequest } from '@/types'
+import {
+    Box,
+    Button,
+    Field,
+    Flex,
+    Input,
+    InputGroup,
+    Stack,
+    Text,
+} from '@chakra-ui/react'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import axios from 'axios'
+import { useState } from 'react'
+import { LuEye, LuUser } from 'react-icons/lu'
 
 export const Route = createFileRoute('/login')({
     beforeLoad: async ({ context }) => {
-        const currentUser = await context.queryClient.query(authQueryOptions);
-        if (currentUser) throw redirect({ to: "/"});
+        const currentUser = await context.queryClient.query(authQueryOptions)
+        if (currentUser) throw redirect({ to: '/' })
     },
     component: Login,
 })
 
 function Login() {
     const { login, loginError, isLoggingIn } = useAuth()
-    const navigate = useNavigate();
-    const [data, setData] = useState<LoginRequest>({ email: "", password: "" });
-    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate()
+    const [data, setData] = useState<LoginRequest>({ email: '', password: '' })
+    const [error, setError] = useState<string | null>(null)
 
     const update = (fields: Partial<LoginRequest>) =>
-        setData((prev) => ({ ...prev, ...fields }));
+        setData((prev) => ({ ...prev, ...fields }))
 
     const handleSubmit = async () => {
-        if(!data.email) {
+        if (!data.email) {
             setError('Please enter email')
-            return;
+            return
         }
         if (data.password.length < 8) {
-            setError("Password must be at least 8 characters");
-            return;
+            setError('Password must be at least 8 characters')
+            return
         }
         try {
             await login(data)
-            navigate({ to: "/" });
-        } catch(err) {
+            navigate({ to: '/' })
+        } catch (err) {
             if (axios.isAxiosError<ApiError>(err)) {
-                setError(err.response?.data?.message ?? "Something went wrong");
+                setError(err.response?.data?.message ?? 'Something went wrong')
             }
         }
-    };
-    
+    }
+
     return (
-        <Box maxW="600px" mx="auto" mt={10} p={6} borderWidth="1px" borderRadius="lg">
+        <Box
+            maxW="600px"
+            mx="auto"
+            mt={10}
+            p={6}
+            borderWidth="1px"
+            borderRadius="lg"
+        >
             <Stack gap={4}>
                 <Field.Root>
                     <Field.Label>Email</Field.Label>
-                    <InputGroup startElement={<LuUser/>}>
-                    <Input
-                        type="email"
-                        value={data.email}
-                        onChange={(e) => update({ email: e.target.value })}
-                        placeholder="Enter your email"
-                    />
+                    <InputGroup startElement={<LuUser />}>
+                        <Input
+                            type="email"
+                            value={data.email}
+                            onChange={(e) => update({ email: e.target.value })}
+                            placeholder="Enter your email"
+                        />
                     </InputGroup>
                 </Field.Root>
 
                 <Field.Root>
                     <Field.Label>Password</Field.Label>
-                    <InputGroup startElement={<LuEye/>}>
+                    <InputGroup startElement={<LuEye />}>
                         <Input
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => update({ password: e.target.value })}
-                        placeholder="*******"
-                    />
+                            type="password"
+                            value={data.password}
+                            onChange={(e) =>
+                                update({ password: e.target.value })
+                            }
+                            placeholder="*******"
+                        />
                     </InputGroup>
                 </Field.Root>
 
                 {(error || loginError) && (
-                    <Text color="red.500" fontSize="sm">{error || loginError}</Text>
+                    <Text color="red.500" fontSize="sm">
+                        {error || loginError}
+                    </Text>
                 )}
-                <Flex justifyContent='space-around'>
-                    <Button variant='surface' onClick={() => navigate({ to: "/register" })}>
+                <Flex justifyContent="space-around">
+                    <Button
+                        variant="surface"
+                        onClick={() => navigate({ to: '/register' })}
+                    >
                         Go to register
                     </Button>
                     <Button onClick={handleSubmit} loading={isLoggingIn}>
@@ -82,5 +105,5 @@ function Login() {
                 </Flex>
             </Stack>
         </Box>
-    );
+    )
 }

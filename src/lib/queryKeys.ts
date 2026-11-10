@@ -10,5 +10,7 @@ export const qk = {
 export const refreshWarehouseData = (qc: QueryClient, warehouseId?: string) =>
     Promise.all([
         qc.invalidateQueries({ queryKey: qk.warehousesAll }),
-        qc.invalidateQueries({ queryKey: warehouseId ? qk.storages(warehouseId) : qk.storagesAll,}),
+        qc.invalidateQueries({
+            queryKey: warehouseId ? qk.storages(warehouseId) : qk.storagesAll,
+        }),
     ])

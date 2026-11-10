@@ -8,7 +8,13 @@ interface InfiniteScrollProps {
     enable?: boolean
     rootMargin?: string
 }
-const InfiniteScroll = ({ onLoadMore, hasMore, isLoading, enable, rootMargin }: InfiniteScrollProps) => {
+const InfiniteScroll = ({
+    onLoadMore,
+    hasMore,
+    isLoading,
+    enable,
+    rootMargin,
+}: InfiniteScrollProps) => {
     const ref = useInfiniteScroll({
         onLoadMore,
         hasMore,

@@ -1,40 +1,64 @@
-import { newestWarehouses, trendingWarehouses } from '@/lib/api/warehouse';
-import { useAuth } from '@/lib/provider';
-import type { WarehouseResponse } from '@/types';
-import { Drawer, Flex, IconButton, Portal, Text, VStack } from '@chakra-ui/react';
-import { useNavigate, useRouterState, type LinkProps } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import type { IconType } from 'react-icons';
-import { LuHeadset, LuHeart, LuHouse, LuMenu, LuSearch, LuSettings, LuSparkles } from 'react-icons/lu';
-import { MdLeaderboard, MdTrendingUp } from 'react-icons/md';
-import CollapsableNav from './CollapsableNav';
-import EmptyState from './EmptyState';
+import { newestWarehouses, trendingWarehouses } from '@/lib/api/warehouse'
+import { useAuth } from '@/lib/provider'
+import type { WarehouseResponse } from '@/types'
+import {
+    Drawer,
+    Flex,
+    IconButton,
+    Portal,
+    Text,
+    VStack,
+} from '@chakra-ui/react'
+import {
+    useNavigate,
+    useRouterState,
+    type LinkProps,
+} from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import type { IconType } from 'react-icons'
+import {
+    LuHeadset,
+    LuHeart,
+    LuHouse,
+    LuMenu,
+    LuSearch,
+    LuSettings,
+    LuSparkles,
+} from 'react-icons/lu'
+import { MdLeaderboard, MdTrendingUp } from 'react-icons/md'
+import CollapsableNav from './CollapsableNav'
+import EmptyState from './EmptyState'
 
 const navItems: {
-    label: string;
-    link: LinkProps['to'];
-    icon: IconType;
-    sellerOnly?: boolean;
+    label: string
+    link: LinkProps['to']
+    icon: IconType
+    sellerOnly?: boolean
 }[] = [
     { label: 'Find Rentals', link: '/', icon: LuSearch },
     { label: 'My Rentals', link: '/my-rental', icon: LuHouse },
     { label: 'Saved Warehouses', link: '/saved-rental', icon: LuHeart },
     { label: 'Support & Inquiries', link: '/supp-inq', icon: LuHeadset },
-];
+]
 const Sidebar = () => {
-    const navigate = useNavigate();
-    const {currentUser} = useAuth();
-    const routerState = useRouterState();
-    const currentPath = routerState.location.pathname;
-    const activeItem = navItems.find((item) => item.link === currentPath);
-    const active = currentPath === '/settings' ? 'Settings' : (activeItem ? activeItem.label : 'Find Rentals');
-    const [trending,setTrending] = useState<WarehouseResponse[]>();
-    const [newest,setNewest] = useState<WarehouseResponse[]>();
+    const navigate = useNavigate()
+    const { currentUser } = useAuth()
+    const routerState = useRouterState()
+    const currentPath = routerState.location.pathname
+    const activeItem = navItems.find((item) => item.link === currentPath)
+    const active =
+        currentPath === '/settings'
+            ? 'Settings'
+            : activeItem
+              ? activeItem.label
+              : 'Find Rentals'
+    const [trending, setTrending] = useState<WarehouseResponse[]>()
+    const [newest, setNewest] = useState<WarehouseResponse[]>()
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false)
 
-    const isSeller = currentUser?.userType === 'SELLER_ROLE';
-    const visibleItems = navItems.filter((item) => !item.sellerOnly || isSeller);
+    const isSeller = currentUser?.userType === 'SELLER_ROLE'
+    const visibleItems = navItems.filter((item) => !item.sellerOnly || isSeller)
 
     useEffect(() => {
         const fetchTrending = async () => {
@@ -48,28 +72,41 @@ const Sidebar = () => {
             }
         }
         fetchTrending()
-    },[])
+    }, [])
 
     const sidebarContent = (
-        <Flex flexDir="column" h="100%" px={3} py={6} bg='#f3f3f3' w='100%'>
-            <Flex alignItems="center" gap={2.5} px={3} pb={6} borderBottom="1px solid" borderColor="gray.200">
+        <Flex flexDir="column" h="100%" px={3} py={6} bg="#f3f3f3" w="100%">
+            <Flex
+                alignItems="center"
+                gap={2.5}
+                px={3}
+                pb={6}
+                borderBottom="1px solid"
+                borderColor="gray.200"
+            >
                 {/* <Flex bg="blue.600" color="white" p={2} borderRadius="lg" alignItems="center" justifyContent="center">
                     <LuBuilding2 size={18} />
                 </Flex> */}
-                <Text fontSize="md" fontWeight="bold" color='#111111'>
+                <Text fontSize="md" fontWeight="bold" color="#111111">
                     Bodegaz
                 </Text>
             </Flex>
 
-            <VStack align="stretch" gap={1} py="3" borderBottom="1px solid" borderColor="gray.200" >
-                {visibleItems.map(({ label,link, icon: Icon }) => {
-                    const isActive = active === label;
+            <VStack
+                align="stretch"
+                gap={1}
+                py="3"
+                borderBottom="1px solid"
+                borderColor="gray.200"
+            >
+                {visibleItems.map(({ label, link, icon: Icon }) => {
+                    const isActive = active === label
                     return (
                         <Flex
                             key={label}
                             as="button"
                             onClick={() => {
-                                navigate({to: link})
+                                navigate({ to: link })
                                 setIsOpen(false)
                             }}
                             alignItems="center"
@@ -82,7 +119,9 @@ const Sidebar = () => {
                             color={isActive ? '#ffffff' : '#111111'}
                             fontWeight={isActive ? 'semibold' : 'medium'}
                             borderLeft="3px solid"
-                            borderLeftColor={isActive ? '#02c9e0' : 'transparent'}
+                            borderLeftColor={
+                                isActive ? '#02c9e0' : 'transparent'
+                            }
                             _hover={{ bg: isActive ? '#0f0708' : '#aabde4' }}
                             transition="background 0.15s, color 0.15s"
                             textAlign="left"
@@ -91,7 +130,7 @@ const Sidebar = () => {
                             <Icon size={18} />
                             <Text fontSize="sm">{label}</Text>
                         </Flex>
-                    );
+                    )
                 })}
             </VStack>
 
@@ -100,21 +139,24 @@ const Sidebar = () => {
                     title="Top by Views"
                     icon={<MdLeaderboard />}
                     items={
-                    trending?.length ? (
-                        trending?.map((t) => ({
-                            isActive: false,
-                            label: t.name,
-                            onClick: () => {
-                                navigate({
-                                    to: "/$warehouseId",
-                                    params: { warehouseId: t.warehouseId },
-                                })
-                            }
-                        }))
-                    ) : (
-                        <EmptyState icon={<MdTrendingUp color="C6D2FF" size='48'/>} title={'No popular warehouse'}/>
-                    )
-                }
+                        trending?.length ? (
+                            trending?.map((t) => ({
+                                isActive: false,
+                                label: t.name,
+                                onClick: () => {
+                                    navigate({
+                                        to: '/$warehouseId',
+                                        params: { warehouseId: t.warehouseId },
+                                    })
+                                },
+                            }))
+                        ) : (
+                            <EmptyState
+                                icon={<MdTrendingUp color="C6D2FF" size="48" />}
+                                title={'No popular warehouse'}
+                            />
+                        )
+                    }
                 />
 
                 <CollapsableNav
@@ -127,13 +169,16 @@ const Sidebar = () => {
                                 label: n.name,
                                 onClick: () => {
                                     navigate({
-                                        to: "/$warehouseId",
+                                        to: '/$warehouseId',
                                         params: { warehouseId: n.warehouseId },
                                     })
-                                }
+                                },
                             }))
                         ) : (
-                            <EmptyState icon={<LuSparkles color="C6D2FF" size='48'/>} title={'No new additions'}/>
+                            <EmptyState
+                                icon={<LuSparkles color="C6D2FF" size="48" />}
+                                title={'No new additions'}
+                            />
                         )
                     }
                 />
@@ -144,7 +189,7 @@ const Sidebar = () => {
                 borderTop="1px solid"
                 borderColor="gray.200"
                 onClick={() => {
-                    navigate({to: "/settings"});
+                    navigate({ to: '/settings' })
                 }}
                 alignItems="center"
                 gap={3}
@@ -161,11 +206,11 @@ const Sidebar = () => {
                 textAlign="left"
                 w="full"
             >
-                <LuSettings size={18}  />
-                <Text fontSize="sm" > Settings</Text>
+                <LuSettings size={18} />
+                <Text fontSize="sm"> Settings</Text>
             </Flex>
         </Flex>
-    );
+    )
 
     return (
         <>
@@ -196,7 +241,11 @@ const Sidebar = () => {
                 {sidebarContent}
             </Flex>
 
-            <Drawer.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)} placement="start">
+            <Drawer.Root
+                open={isOpen}
+                onOpenChange={(e) => setIsOpen(e.open)}
+                placement="start"
+            >
                 <Portal>
                     <Drawer.Backdrop />
                     <Drawer.Positioner>
@@ -207,7 +256,7 @@ const Sidebar = () => {
                 </Portal>
             </Drawer.Root>
         </>
-    );
-};
+    )
+}
 
-export default Sidebar;
+export default Sidebar

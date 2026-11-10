@@ -8,7 +8,13 @@ interface InfiniteScrollProps {
     enable?: boolean
 }
 
-const useInfiniteScroll = ({ onLoadMore, hasMore, isLoading, rootMargin = '200px', enable = true }: InfiniteScrollProps) => {
+const useInfiniteScroll = ({
+    onLoadMore,
+    hasMore,
+    isLoading,
+    rootMargin = '200px',
+    enable = true,
+}: InfiniteScrollProps) => {
     const ref = useRef<HTMLDivElement | null>(null)
     const lockRef = useRef(false)
 
@@ -25,7 +31,7 @@ const useInfiniteScroll = ({ onLoadMore, hasMore, isLoading, rootMargin = '200px
                 lockRef.current = true
                 onLoadMore()
             },
-            { rootMargin },
+            { rootMargin }
         )
 
         const el = ref.current

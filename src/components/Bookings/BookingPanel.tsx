@@ -1,9 +1,5 @@
 const BookingPanel = () => {
-    return(
-        <>
-        
-        </>
-    )
+    return <></>
 }
 
 export default BookingPanel

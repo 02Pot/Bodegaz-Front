@@ -30,7 +30,7 @@ const CollapSibleNavs = ({
     return (
         <Box
             p={{ base: '1rem', md: '20px' }}
-            bg="#f3f3f3"
+            bg="bg.panel"
             borderRadius="10px"
             boxShadow="0px 1px 2px -1px rgba(0,0,0,0.1), 0px 1px 3px 0px rgba(0,0,0,0.1)"
         >
@@ -48,7 +48,7 @@ const CollapSibleNavs = ({
                         <Flex alignItems="center" gap="7px">
                             {icon}
                             <Text
-                                color="#101828"
+                                color="fg"
                                 fontSize="16px"
                                 fontWeight="600"
                                 letterSpacing="-0.4px"
@@ -60,7 +60,7 @@ const CollapSibleNavs = ({
                         <LuChevronUp
                             size="20"
                             style={{
-                                color: '#99A1AF',
+                                color: 'fg',
                                 transform: open
                                     ? 'rotate(0deg)'
                                     : 'rotate(180deg)',
@@ -79,10 +79,10 @@ const CollapSibleNavs = ({
                                         cursor="pointer"
                                         onClick={() => e.onClick?.()}
                                         borderRadius="10px"
-                                        bg={e.isActive ? '#CAD4F0' : 'unset'}
+                                        bg={e.isActive ? 'fg' : 'unset'}
                                         p="8px"
                                         transition="all 0.2s ease"
-                                        _hover={{ bg: '#CAD4F0' }}
+                                        _hover={{ bg: 'bg.muted' }}
                                         key={i}
                                     >
                                         <Flex
@@ -102,11 +102,7 @@ const CollapSibleNavs = ({
                                                         : 'regular'
                                                 }
                                                 letterSpacing="-0.4px"
-                                                color={
-                                                    e.isActive
-                                                        ? '#2C2C7C'
-                                                        : '#4A5565'
-                                                }
+                                                color={e.isActive ? 'fg' : 'fg'}
                                                 overflow="hidden"
                                                 textOverflow="ellipsis"
                                                 whiteSpace="nowrap"
@@ -122,9 +118,8 @@ const CollapSibleNavs = ({
                                                             e.elementContent
                                                         }
                                                         contentProps={{
-                                                            background:
-                                                                '#DBEAFE',
-                                                            color: '#4E74DE',
+                                                            background: 'fg',
+                                                            color: 'fg',
                                                         }}
                                                     >
                                                         {e.rightElement}
@@ -133,7 +128,7 @@ const CollapSibleNavs = ({
                                             ) : e.count !== undefined ? (
                                                 <Text
                                                     fontSize="12px"
-                                                    color="#6B7280"
+                                                    color="fg"
                                                     flexShrink={0}
                                                 >
                                                     {e.count}

@@ -2,9 +2,10 @@ import LeaseView from '@/components/Lease'
 import { BASE_URL, BookingStatus } from '@/constant'
 import { createBooking } from '@/lib/api/booking'
 import { acceptTerms, getLease } from '@/lib/api/lease'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import { qk } from '@/lib/queryKeys'
 import type { AcceptTermsResponse, BookingRequest } from '@/types'
-import { fmtDate, peso } from '@/utils/helpers'
+import { fmtDate } from '@/utils/helpers'
 import {
     Badge,
     Box,
@@ -29,7 +30,7 @@ import { useMemo, useRef, useState } from 'react'
 import { LuChevronLeft, LuInfo } from 'react-icons/lu'
 
 export const Route = createFileRoute(
-    '/_authenticated/$warehouseId/lease-agree'
+    '/_authenticated/warehouse/$warehouseId/lease-agree'
 )({
     component: RouteComponent,
 })
@@ -46,6 +47,13 @@ const Info = ({ label, value }: { label: string; value: string }) => (
 )
 
 function RouteComponent() {
+    const {
+        toBaseVolume,
+        toBaseWeight,
+        formatWeight,
+        formatVolume,
+        formatPricePerVolume,
+    } = usePreferences()
     const { warehouseId } = Route.useParams()
     const navigate = useNavigate()
     const [bookingData] = useState(() => {
@@ -63,10 +71,12 @@ function RouteComponent() {
                     bookingData.storageId ?? bookingData.storage?.storageId,
                 startDate: bookingData.startDate,
                 endDate: bookingData.endDate,
-                rentedVolumeCubicMeter: bookingData.rentedVolumeCubicMeter,
-                rentedWeightKg: bookingData.rentedWeightKg,
+                rentedVolumeCubicMeter: toBaseVolume(
+                    bookingData.rentedVolumeCubicMeter
+                ),
+                rentedWeightKg: toBaseWeight(bookingData.rentedWeightKg),
             },
-        [bookingData]
+        [bookingData, toBaseVolume, toBaseWeight]
     )
 
     const bookingMutation = useMutation<
@@ -98,7 +108,9 @@ function RouteComponent() {
     })
 
     if (!bookingData)
-        return <Navigate to="/$warehouseId" params={{ warehouseId }} />
+        return (
+            <Navigate to="/warehouse/$warehouseId" params={{ warehouseId }} />
+        )
 
     const { warehouse, storage } = bookingData
     const canAccept =
@@ -118,7 +130,10 @@ function RouteComponent() {
                 color="fg.muted"
                 _hover={{ textDecoration: 'none', color: 'fg' }}
             >
-                <RouterLink to="/$warehouseId" params={{ warehouseId }}>
+                <RouterLink
+                    to="/warehouse/$warehouseId"
+                    params={{ warehouseId }}
+                >
                     <LuChevronLeft />
                     Back to warehouse
                 </RouterLink>
@@ -226,18 +241,21 @@ function RouteComponent() {
                     label="Material"
                     value={storage.materialType.replace(/_/g, ' ')}
                 />
-                <Info label="Price per m³" value={peso(rate)} />
+                <Info
+                    label="Price per unit"
+                    value={formatPricePerVolume(rate)}
+                />
                 <Info
                     label="Period"
                     value={`${fmtDate(bookingData.startDate)} - ${fmtDate(bookingData.endDate)}`}
                 />
                 <Info
                     label="Volume"
-                    value={`${bookingData.rentedVolumeCubicMeter} m³`}
+                    value={formatVolume(bookingData.rentedVolumeCubicMeter)}
                 />
                 <Info
                     label="Weight"
-                    value={`${bookingData.rentedWeightKg} kg`}
+                    value={formatWeight(bookingData.rentedWeightKg)}
                 />
                 <Text></Text>
                 <Text></Text>
@@ -250,7 +268,7 @@ function RouteComponent() {
                             variant="outline"
                             onClick={() =>
                                 navigate({
-                                    to: '/$warehouseId',
+                                    to: '/warehouse/$warehouseId',
                                     params: { warehouseId },
                                 })
                             }

@@ -1,6 +1,7 @@
 import { BookingStatus } from '@/constant'
 import { getOwnerBookings, getOwnerBookingStats } from '@/lib/api/booking'
 import { useDebouncedValue } from '@/lib/hooks/useDebounced'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import type { OwnerBooking } from '@/types'
 import { fmtDate } from '@/utils/helpers'
 import {
@@ -33,6 +34,7 @@ import ReviewDialog from './Bookings/Review'
 const PAGE_SIZE = 10
 
 const RentalPanel = () => {
+    const { formatPrice } = usePreferences()
     const [filters, setFilters] = useState('all')
     const [search, setSearch] = useState('')
     const debouncedSearch = useDebouncedValue(search)
@@ -277,7 +279,7 @@ const RentalPanel = () => {
                                             {statusLabel(item.status)}
                                         </Table.Cell>
                                         <Table.Cell>
-                                            P {item.totalPrice.toLocaleString()}
+                                            {formatPrice(item.totalPrice)}
                                         </Table.Cell>
                                         <Table.Cell textAlign="center">
                                             {item.status ===
@@ -373,7 +375,7 @@ const RentalPanel = () => {
                                             {fmtDate(item.endDate)}
                                         </Text>
                                         <Text fontSize="sm" fontWeight="medium">
-                                            P {item.totalPrice.toLocaleString()}
+                                            {formatPrice(item.totalPrice)}
                                         </Text>
                                     </Box>
                                     <Button

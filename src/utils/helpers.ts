@@ -18,8 +18,6 @@ export const toLabel = (t: string) =>
         .split('_')
         .map((w) => w[0].toUpperCase() + w.slice(1))
         .join(' ')
-export const peso = (n: number) =>
-    `₱${n.toLocaleString('en-PH', { maximumFractionDigits: 2 })}`
 
 export const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString('en-US', {

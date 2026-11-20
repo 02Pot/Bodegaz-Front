@@ -1,109 +1,142 @@
-import { authQueryOptions, useAuth } from '@/lib/provider'
-import type { ApiError, LoginRequest } from '@/types'
+import { AuthShell } from '@/components/AuthShell'
+import { useAuth } from '@/lib/hooks/useAuth'
 import {
     Box,
     Button,
+    Link as ChakraLink,
     Field,
-    Flex,
+    Heading,
+    IconButton,
     Input,
     InputGroup,
     Stack,
     Text,
 } from '@chakra-ui/react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import axios from 'axios'
-import { useState } from 'react'
-import { LuEye, LuUser } from 'react-icons/lu'
+import {
+    createFileRoute,
+    Link as RouterLink,
+    useNavigate,
+} from '@tanstack/react-router'
+import { useState, type SubmitEvent } from 'react'
+import { LuEye, LuEyeOff, LuLock, LuMail } from 'react-icons/lu'
 
 export const Route = createFileRoute('/login')({
-    beforeLoad: async ({ context }) => {
-        const currentUser = await context.queryClient.query(authQueryOptions)
-        if (currentUser) throw redirect({ to: '/' })
-    },
-    component: Login,
+    component: LoginPage,
 })
 
-function Login() {
+function LoginPage() {
     const { login, loginError, isLoggingIn } = useAuth()
     const navigate = useNavigate()
-    const [data, setData] = useState<LoginRequest>({ email: '', password: '' })
-    const [error, setError] = useState<string | null>(null)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [show, setShow] = useState(false)
 
-    const update = (fields: Partial<LoginRequest>) =>
-        setData((prev) => ({ ...prev, ...fields }))
-
-    const handleSubmit = async () => {
-        if (!data.email) {
-            setError('Please enter email')
-            return
-        }
-        if (data.password.length < 8) {
-            setError('Password must be at least 8 characters')
-            return
-        }
+    const onSubmit = async (e: SubmitEvent) => {
+        e.preventDefault()
         try {
-            await login(data)
+            await login({ email, password })
             navigate({ to: '/' })
-        } catch (err) {
-            if (axios.isAxiosError<ApiError>(err)) {
-                setError(err.response?.data?.message ?? 'Something went wrong')
-            }
+        } catch {
+            // loginError is set by AuthProvider
         }
     }
 
     return (
-        <Box
-            maxW="600px"
-            mx="auto"
-            mt={10}
-            p={6}
-            borderWidth="1px"
-            borderRadius="lg"
-        >
-            <Stack gap={4}>
-                <Field.Root>
-                    <Field.Label>Email</Field.Label>
-                    <InputGroup startElement={<LuUser />}>
-                        <Input
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => update({ email: e.target.value })}
-                            placeholder="Enter your email"
-                        />
-                    </InputGroup>
-                </Field.Root>
+        <AuthShell imageSide="left" headline="Find the space your goods need.">
+            <Box as="form" onSubmit={onSubmit}>
+                <Stack gap={6}>
+                    <Box>
+                        <Heading size="2xl" letterSpacing="-0.01em">
+                            Welcome back
+                        </Heading>
+                        <Text color="fg.muted" mt={1}>
+                            Log in to manage your rentals and warehouses.
+                        </Text>
+                    </Box>
 
-                <Field.Root>
-                    <Field.Label>Password</Field.Label>
-                    <InputGroup startElement={<LuEye />}>
-                        <Input
-                            type="password"
-                            value={data.password}
-                            onChange={(e) =>
-                                update({ password: e.target.value })
-                            }
-                            placeholder="*******"
-                        />
-                    </InputGroup>
-                </Field.Root>
+                    {loginError && (
+                        <Box
+                            role="alert"
+                            bg="red.subtle"
+                            color="red.fg"
+                            borderWidth="1px"
+                            borderColor="red.muted"
+                            rounded="lg"
+                            px={3}
+                            py={2}
+                            fontSize="sm"
+                        >
+                            {loginError}
+                        </Box>
+                    )}
 
-                {(error || loginError) && (
-                    <Text color="red.500" fontSize="sm">
-                        {error || loginError}
-                    </Text>
-                )}
-                <Flex justifyContent="space-around">
+                    <Stack gap={4}>
+                        <Field.Root required>
+                            <Field.Label>Email</Field.Label>
+                            <InputGroup startElement={<LuMail />}>
+                                <Input
+                                    type="email"
+                                    autoComplete="email"
+                                    placeholder="you@company.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </InputGroup>
+                        </Field.Root>
+
+                        <Field.Root required>
+                            <Field.Label>Password</Field.Label>
+                            <InputGroup
+                                startElement={<LuLock />}
+                                endElement={
+                                    <IconButton
+                                        type="button"
+                                        size="xs"
+                                        variant="ghost"
+                                        aria-label={
+                                            show
+                                                ? 'Hide password'
+                                                : 'Show password'
+                                        }
+                                        onClick={() => setShow((s) => !s)}
+                                        me="-2"
+                                    >
+                                        {show ? <LuEyeOff /> : <LuEye />}
+                                    </IconButton>
+                                }
+                            >
+                                <Input
+                                    type={show ? 'text' : 'password'}
+                                    autoComplete="current-password"
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                />
+                            </InputGroup>
+                        </Field.Root>
+                    </Stack>
+
                     <Button
-                        variant="surface"
-                        onClick={() => navigate({ to: '/register' })}
+                        type="submit"
+                        size="lg"
+                        loading={isLoggingIn}
+                        disabled={!email || !password}
                     >
-                        Go to register
-                    </Button>
-                    <Button onClick={handleSubmit} loading={isLoggingIn}>
                         Log in
                     </Button>
-                </Flex>
-            </Stack>
-        </Box>
+
+                    <Text fontSize="sm" color="fg.muted" textAlign="center">
+                        New to Bodegaz?{' '}
+                        <ChakraLink asChild fontWeight="semibold" color="fg">
+                            <RouterLink to="/register" viewTransition>
+                                Create an account
+                            </RouterLink>
+                        </ChakraLink>
+                    </Text>
+                </Stack>
+            </Box>
+        </AuthShell>
     )
 }

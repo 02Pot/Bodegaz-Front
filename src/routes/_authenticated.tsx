@@ -1,5 +1,5 @@
 import HomeLayout from '@/layouts/HomeLayout'
-import { authQueryOptions } from '@/lib/provider'
+import { authQueryOptions } from '@/lib/context/authContext'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated')({

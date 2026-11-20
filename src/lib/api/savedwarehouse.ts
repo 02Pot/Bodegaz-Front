@@ -1,4 +1,4 @@
-import type { Filters } from '@/components/Filter/Filter'
+import type { Filters } from '@/types'
 import { api } from '../axios'
 
 export const saveWarehouse = (id: string) =>

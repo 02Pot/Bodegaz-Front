@@ -1,11 +1,13 @@
 import { ChakraProvider } from '@chakra-ui/react'
-import { system } from '@chakra-ui/react/preset'
+import { defaultSystem } from '@chakra-ui/react/preset'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import ReactDOM from 'react-dom/client'
-import { AuthProvider } from './lib/provider'
+import { ColorModeProvider } from './components/ui/color-mode'
+import { AuthProvider } from './lib/provider/AuthProvider'
+import { PreferencesProvider } from './lib/provider/PreferenceProvider'
 import { routeTree } from './routeTree.gen'
 
 const MAX_AGE = 1000 * 60 * 60 * 24
@@ -43,10 +45,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         }}
         onSuccess={() => router.invalidate()}
     >
-        <ChakraProvider value={system}>
-            <AuthProvider>
-                <RouterProvider router={router} />
-            </AuthProvider>
+        <ChakraProvider value={defaultSystem}>
+            <ColorModeProvider>
+                <PreferencesProvider>
+                    <AuthProvider>
+                        <RouterProvider router={router} />
+                    </AuthProvider>
+                </PreferencesProvider>
+            </ColorModeProvider>
         </ChakraProvider>
     </PersistQueryClientProvider>
 )

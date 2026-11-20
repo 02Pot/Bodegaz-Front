@@ -304,7 +304,6 @@ const EditWarehouseDialog = ({ warehouse, open, onClose, onSubmit }: Props) => {
                             </Button>
                             <Button
                                 bg="black"
-                                color="white"
                                 _hover={{ bg: 'gray.800' }}
                                 onClick={submit}
                                 loading={saving}

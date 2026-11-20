@@ -1,4 +1,5 @@
 import { MATERIAL_TYPES, type MaterialType } from '@/constant'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import { qk } from '@/lib/queryKeys'
 import type { StorageResponse } from '@/types'
 import { materialLabel } from '@/utils/helpers'
@@ -29,6 +30,7 @@ const EditStorageDialog = ({
     onClose,
     onSubmit,
 }: EditStorageDialogProps) => {
+    const { symbol } = usePreferences()
     const [blockName, setBlockName] = useState(storage.blockName)
     const [section, setSection] = useState(storage.section ?? '')
     const [maxWeight, setMaxWeight] = useState(String(storage.maxWeight))
@@ -200,7 +202,7 @@ const EditStorageDialog = ({
                                 >
                                     <Field.Root required invalid={priceInvalid}>
                                         <Field.Label>
-                                            Price per m³ (₱)
+                                            Price per m³ ({symbol})
                                         </Field.Label>
                                         <Input
                                             type="number"

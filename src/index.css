@@ -110,3 +110,17 @@ code {
     padding: 4px 8px;
     background: var(--code-bg);
 }
+
+::view-transition-group(auth-hero),
+::view-transition-group(auth-form) {
+    animation-duration: 500ms;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}

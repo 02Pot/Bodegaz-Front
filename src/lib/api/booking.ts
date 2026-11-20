@@ -19,12 +19,13 @@ export const cancelBooking = async (orderId: string) => {
 }
 
 export const getCapacity = async (
+    warehouseId: string,
     storageId: string,
-    startDate: Date,
-    endDate: Date
+    startDate: string,
+    endDate: string
 ) => {
     const req = await api.get(
-        `/bookings/${storageId}/capacity?startDate=${startDate}&endDate=${endDate}`
+        `/warehouses/${warehouseId}/storages/${storageId}/capacity?startDate=${startDate}&endDate=${endDate}`
     )
     return req.data
 }

@@ -1,5 +1,5 @@
-import type { Filters } from '@/components/Filter/Filter'
 import type { WarehouseEditValues } from '@/components/Warehouse/EditWarehouse'
+import type { Filters } from '@/types'
 import { api } from '../axios'
 
 interface WarehouseRequest {

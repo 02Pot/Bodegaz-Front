@@ -73,8 +73,6 @@ export function WarehouseGallery({
                             aria-label="Previous photo"
                             size={{ base: 'xs', md: 'sm' }}
                             rounded="full"
-                            bg="white"
-                            color="gray.800"
                             shadow="sm"
                         >
                             <LuChevronUp />
@@ -85,8 +83,6 @@ export function WarehouseGallery({
                             aria-label="Next photo"
                             size={{ base: 'xs', md: 'sm' }}
                             rounded="full"
-                            bg="white"
-                            color="gray.800"
                             shadow="sm"
                         >
                             <LuChevronDown />

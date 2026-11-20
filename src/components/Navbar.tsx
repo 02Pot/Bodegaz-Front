@@ -1,9 +1,8 @@
 import { pageTitles } from '@/constant'
 import { getMyWarehouse } from '@/lib/api/warehouse'
+import { useAuth } from '@/lib/hooks/useAuth'
 import useProfile from '@/lib/hooks/useProfile'
-import { useAuth } from '@/lib/provider'
 import { qk } from '@/lib/queryKeys'
-import type { ApiError } from '@/types'
 import {
     Avatar,
     Box,
@@ -15,21 +14,43 @@ import {
 } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
 import { useLocation, useNavigate } from '@tanstack/react-router'
-import axios from 'axios'
-import { useState } from 'react'
-import { FaBell } from 'react-icons/fa'
+import { LuBell } from 'react-icons/lu'
 
 const EMPTY: never[] = []
 
-const Navbar = () => {
-    const location = useLocation()
-    const navigate = useNavigate()
-    const { profile, user } = useProfile()
-    const { logout, currentUser } = useAuth()
-    const [error, setError] = useState<string | null>(null)
-    const isSeller = currentUser?.userType === 'SELLER_ROLE'
+const DEFAULT_TITLE = {
+    title: 'Warehouse Marketplace',
+    subtitle:
+        'Browse verified industrial spaces, check real-time availability, and book leases',
+}
 
-    const { data: warehouse = EMPTY, isLoading } = useQuery({
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const ACCOUNT_TITLE = {
+    title: 'Your Account',
+    subtitle: 'Update your details, profile picture, and password.',
+}
+
+const isWarehousePath = (pathname: string) => {
+    if (pathname.startsWith('/warehouse')) return true
+    const [first] = pathname.split('/').filter(Boolean)
+    return !!first && UUID.test(first)
+}
+
+const getTitle = (pathname: string) => {
+    if (pageTitles[pathname]) return pageTitles[pathname]
+    if (pathname.endsWith('/lease-agree')) return pageTitles['/lease-agree']
+    return isWarehousePath(pathname) ? DEFAULT_TITLE : ACCOUNT_TITLE
+}
+const Navbar = () => {
+    const { pathname } = useLocation()
+    const navigate = useNavigate()
+    const { profile } = useProfile()
+    const { logout, currentUser } = useAuth()
+    const isSeller = currentUser?.userType === 'SELLER_ROLE'
+    const unread = 0
+
+    const { data: warehouses = EMPTY, isLoading } = useQuery({
         queryKey: qk.warehousesAll,
         queryFn: () => getMyWarehouse(),
         staleTime: 1000 * 60 * 5,
@@ -37,22 +58,14 @@ const Navbar = () => {
         retry: false,
     })
 
-    const current = pageTitles[location.pathname] ?? {
-        title: 'Warehouse Marketplace',
-        subtitle:
-            'Browse verified industrial spaces, check real-time availability, and book leases',
-    }
+    const current = getTitle(pathname)
 
     const handleLogout = async () => {
         try {
-            console.log('logout')
             await logout()
             navigate({ to: '/login', replace: true })
         } catch (err) {
-            if (axios.isAxiosError<ApiError>(err)) {
-                setError(err.response?.data?.message ?? 'Something went wrong')
-                console.log(error)
-            }
+            console.error('Logout failed', err)
         }
     }
 
@@ -63,12 +76,13 @@ const Navbar = () => {
             pl={{ base: 16, md: 8 }}
             pr={{ base: 4, md: 8 }}
             py={4}
-            bg="white"
-            borderBottom="1px solid"
-            borderColor="gray.200"
+            borderBottom={{
+                _light: '1px solid {colors.gray.200}',
+                _dark: '1px solid {colors.gray.700}',
+            }}
+            bg="bg.panel"
             justifyContent="space-between"
             alignItems="center"
-            boxShadow="sm"
             position="sticky"
             top="0"
             zIndex="1000"
@@ -78,95 +92,88 @@ const Navbar = () => {
                     <Text
                         fontSize={{ base: 'sm', md: 'lg' }}
                         fontWeight="bold"
-                        color="gray.900"
                         lineHeight="1.2"
                         truncate
                     >
                         {current.title}
                     </Text>
-                    <Text
-                        fontSize="xs"
-                        color="gray.500"
-                        display={{ base: 'none', md: 'block' }}
-                    >
+                    <Text fontSize="xs" display={{ base: 'none', md: 'block' }}>
                         {current.subtitle}
                     </Text>
                 </Box>
             </Flex>
 
             <Flex alignItems="center" gap={{ base: 2, md: 6 }} flexShrink={0}>
-                {user?.userType == 'SELLER_ROLE' && (
+                {isSeller && (
                     <Box
+                        as="button"
+                        onClick={() => navigate({ to: '/my-rental' })}
                         display={{ base: 'none', md: 'block' }}
-                        cursor="pointer"
-                        px={{ base: 2, md: 3 }}
+                        px={3}
                         py={1.5}
                         borderRadius="xl"
-                        bg={warehouse.length > 0 ? 'green.200' : 'gray.200'}
+                        bg={warehouses.length > 0 ? 'green.200' : 'gray.200'}
                         transition="background 0.2s"
                     >
-                        <Text
-                            fontSize="sm"
-                            fontWeight="medium"
-                            color="gray.700"
-                        >
-                            <Box
-                                as="span"
-                                display={{ base: 'none', sm: 'inline' }}
-                            >
-                                Active Rentals{' '}
-                            </Box>
-                            {isLoading ? '...' : warehouse.length}
+                        <Text fontSize="sm" fontWeight="medium">
+                            My Warehouses{' '}
+                            {isLoading ? '...' : warehouses.length}
                         </Text>
                     </Box>
                 )}
 
                 <IconButton
                     position="relative"
-                    colorPalette="gray"
                     variant="ghost"
                     aria-label="Notifications"
                     size={{ base: 'md', md: 'lg' }}
                 >
-                    <FaBell color={'gray.750'} />
-                    <Box
-                        as="span"
-                        position="absolute"
-                        top="6px"
-                        right="4px"
-                        fontSize="0.65rem"
-                        color="white"
-                        bg="red.500"
-                        borderRadius="full"
-                        minW="16px"
-                        h="16px"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        px="1"
-                    >
-                        2
-                    </Box>
+                    <LuBell />
+                    {unread > 0 && (
+                        <Box
+                            as="span"
+                            position="absolute"
+                            top="6px"
+                            right="4px"
+                            fontSize="0.65rem"
+                            bg="red.500"
+                            borderRadius="full"
+                            minW="16px"
+                            h="16px"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            px="1"
+                        >
+                            {unread > 9 ? '9+' : unread}
+                        </Box>
+                    )}
                 </IconButton>
 
                 <Menu.Root positioning={{ placement: 'bottom' }}>
-                    <Menu.Trigger rounded={'full'} focusRing={'outside'}>
-                        <Avatar.Root size="sm">
-                            <Avatar.Fallback name="User" />
+                    <Menu.Trigger rounded="full" focusRing="outside">
+                        <Avatar.Root size="sm" border={{ _dark: 'gray.200' }}>
+                            <Avatar.Fallback name={currentUser?.name} />
                             <Avatar.Image src={profile} />
                         </Avatar.Root>
                     </Menu.Trigger>
                     <Portal>
                         <Menu.Positioner>
                             <Menu.Content>
-                                <Menu.Item value="account">Account</Menu.Item>
                                 <Menu.Item
-                                    value="settings"
+                                    value="account"
+                                    disabled={!currentUser}
                                     onClick={() =>
-                                        navigate({ to: '/settings' })
+                                        navigate({
+                                            to: '/settings',
+                                            params: {
+                                                username:
+                                                    currentUser?.email ?? '',
+                                            },
+                                        })
                                     }
                                 >
-                                    Settings
+                                    Account & Settings
                                 </Menu.Item>
                                 <Menu.Item
                                     value="logout"

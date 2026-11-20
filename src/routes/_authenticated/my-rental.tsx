@@ -6,9 +6,10 @@ import { getBookings } from '@/lib/api/booking'
 import { getMyWarehouse } from '@/lib/api/warehouse'
 import { useAuth } from '@/lib/hooks/useAuth'
 import useInfiniteScroll from '@/lib/hooks/useInfiniteScroll'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import { qk } from '@/lib/queryKeys'
 import type { BookingDetailResponse, ScrollResponse } from '@/types'
-import { fmtDate, peso } from '@/utils/helpers'
+import { fmtDate } from '@/utils/helpers'
 import {
     Badge,
     Box,
@@ -110,7 +111,13 @@ function MyBookingsPanel() {
     } = useInfiniteQuery(buyerWarehouseOptions)
     const bookings = data?.pages.flatMap((p) => p.items) ?? []
     const navigate = useNavigate()
-
+    const {
+        toBaseVolume,
+        toBaseWeight,
+        formatVolume,
+        formatPricePerVolume,
+        formatWeight,
+    } = usePreferences()
     const loadMoreRef = useInfiniteScroll({
         onLoadMore: () => fetchNextPage(),
         hasMore: !!hasNextPage,
@@ -132,7 +139,7 @@ function MyBookingsPanel() {
     }
 
     return (
-        <Stack gap={4} pt={4}>
+        <Stack gap={4}>
             {bookings.map((b: BookingDetailResponse) => {
                 const warehouse = b.warehouse
                 const storage = b.storage
@@ -161,7 +168,7 @@ function MyBookingsPanel() {
                         borderWidth="1px"
                         rounded="xl"
                         overflow="hidden"
-                        bg="bg"
+                        bg="bg.panel"
                         _hover={{
                             borderColor: '#c2c2c2',
                             shadow: 'md',
@@ -173,12 +180,12 @@ function MyBookingsPanel() {
                                 JSON.stringify({
                                     ...b,
                                     storageId,
-                                    weight: rentedWeight,
-                                    volume: rentedVolume,
+                                    weight: toBaseWeight(rentedWeight),
+                                    volume: toBaseVolume(rentedVolume),
                                 })
                             )
                             navigate({
-                                to: `/${warehouse.warehouseId}/lease-agree`,
+                                to: `/warehouse/${warehouse.warehouseId}/lease-agree`,
                             })
                         }}
                     >
@@ -234,8 +241,6 @@ function MyBookingsPanel() {
                                                         md: 'sm',
                                                     }}
                                                     rounded="full"
-                                                    bg="white"
-                                                    color="gray.800"
                                                     boxShadow="sm"
                                                     _hover={{
                                                         bg: 'gray.50',
@@ -306,20 +311,26 @@ function MyBookingsPanel() {
                                     value={storage.materialType}
                                 />
                                 <Stat
-                                    label="Price per m³"
-                                    value={peso(storage.pricePerCubicMeter)}
+                                    label="Price per m³/ft³"
+                                    value={formatPricePerVolume(
+                                        storage.pricePerCubicMeter
+                                    )}
                                 />
                                 <Stat
                                     label="Max volume"
-                                    value={`${storage.maxVolumeCubicMeter} m³`}
+                                    value={formatVolume(
+                                        storage.maxVolumeCubicMeter
+                                    )}
                                 />
                                 <Stat
                                     label="Max weight"
-                                    value={`${storage.maxWeight} kg`}
+                                    value={formatWeight(storage.maxWeight)}
                                 />
                                 <Stat
                                     label="Warehouse capacity"
-                                    value={`${warehouse.warehouseCapacityKg} kg`}
+                                    value={formatWeight(
+                                        warehouse.warehouseCapacityKg
+                                    )}
                                 />
                             </SimpleGrid>
 

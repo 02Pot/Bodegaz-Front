@@ -1,5 +1,5 @@
 import { newestWarehouses, trendingWarehouses } from '@/lib/api/warehouse'
-import { useAuth } from '@/lib/provider'
+import { useAuth } from '@/lib/hooks/useAuth'
 import type { WarehouseResponse } from '@/types'
 import {
     Drawer,
@@ -9,18 +9,20 @@ import {
     Text,
     VStack,
 } from '@chakra-ui/react'
+import { useQuery } from '@tanstack/react-query'
 import {
     useNavigate,
     useRouterState,
     type LinkProps,
 } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { IconType } from 'react-icons'
 import {
     LuHeadset,
     LuHeart,
     LuHouse,
     LuMenu,
+    LuMessageCircle,
     LuSearch,
     LuSettings,
     LuSparkles,
@@ -37,57 +39,69 @@ const navItems: {
 }[] = [
     { label: 'Find Rentals', link: '/', icon: LuSearch },
     { label: 'My Rentals', link: '/my-rental', icon: LuHouse },
+    { label: 'Messages', link: '/messages', icon: LuMessageCircle },
     { label: 'Saved Warehouses', link: '/saved-rental', icon: LuHeart },
     { label: 'Support & Inquiries', link: '/supp-inq', icon: LuHeadset },
 ]
+
+const listQuery = (
+    key: string,
+    fn: (size: number) => Promise<{ content?: WarehouseResponse[] }>
+) => ({
+    queryKey: ['sidebar', key],
+    queryFn: () => fn(3),
+    select: (r: { content?: WarehouseResponse[] }) => r?.content ?? [],
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+})
+
 const Sidebar = () => {
     const navigate = useNavigate()
     const { currentUser } = useAuth()
-    const routerState = useRouterState()
-    const currentPath = routerState.location.pathname
-    const activeItem = navItems.find((item) => item.link === currentPath)
+    const currentPath = useRouterState().location.pathname
+    const [isOpen, setIsOpen] = useState(false)
+
+    const activeItem = navItems.find(
+        (item) =>
+            item.link !== '/' && currentPath.startsWith(item.link as string)
+    )
     const active =
         currentPath === '/settings'
             ? 'Settings'
-            : activeItem
-              ? activeItem.label
-              : 'Find Rentals'
-    const [trending, setTrending] = useState<WarehouseResponse[]>()
-    const [newest, setNewest] = useState<WarehouseResponse[]>()
+            : (activeItem?.label ?? 'Find Rentals')
 
-    const [isOpen, setIsOpen] = useState(false)
+    const { data: trending } = useQuery(
+        listQuery('trending', trendingWarehouses)
+    )
+    const { data: newest } = useQuery(listQuery('newest', newestWarehouses))
 
     const isSeller = currentUser?.userType === 'SELLER_ROLE'
     const visibleItems = navItems.filter((item) => !item.sellerOnly || isSeller)
 
-    useEffect(() => {
-        const fetchTrending = async () => {
-            try {
-                const trending = await trendingWarehouses(3)
-                const newest = await newestWarehouses(3)
-                setNewest(newest?.content || [])
-                setTrending(trending?.content || [])
-            } catch (err) {
-                console.error('Failed to fetch board', err)
-            }
-        }
-        fetchTrending()
-    }, [])
+    const toItems = (list: WarehouseResponse[]) =>
+        list.map((w) => ({
+            isActive: false,
+            label: w.name,
+            onClick: () => {
+                navigate({
+                    to: '/warehouse/$warehouseId',
+                    params: { warehouseId: w.warehouseId },
+                })
+                setIsOpen(false)
+            },
+        }))
 
     const sidebarContent = (
-        <Flex flexDir="column" h="100%" px={3} py={6} bg="#f3f3f3" w="100%">
+        <Flex flexDir="column" h="100%" px={3} py={6} w="100%" bg="bg.panel">
             <Flex
                 alignItems="center"
                 gap={2.5}
                 px={3}
                 pb={6}
                 borderBottom="1px solid"
-                borderColor="gray.200"
+                borderColor="border"
             >
-                {/* <Flex bg="blue.600" color="white" p={2} borderRadius="lg" alignItems="center" justifyContent="center">
-                    <LuBuilding2 size={18} />
-                </Flex> */}
-                <Text fontSize="md" fontWeight="bold" color="#111111">
+                <Text fontSize="md" fontWeight="bold">
                     Bodegaz
                 </Text>
             </Flex>
@@ -97,7 +111,7 @@ const Sidebar = () => {
                 gap={1}
                 py="3"
                 borderBottom="1px solid"
-                borderColor="gray.200"
+                borderColor="border"
             >
                 {visibleItems.map(({ label, link, icon: Icon }) => {
                     const isActive = active === label
@@ -115,14 +129,14 @@ const Sidebar = () => {
                             py={2.5}
                             borderRadius="md"
                             cursor="pointer"
-                            bg={isActive ? '#000000' : 'transparent'}
-                            color={isActive ? '#ffffff' : '#111111'}
+                            bg={isActive ? 'fg' : 'transparent'}
+                            color={isActive ? 'bg' : 'fg'}
                             fontWeight={isActive ? 'semibold' : 'medium'}
                             borderLeft="3px solid"
                             borderLeftColor={
                                 isActive ? '#02c9e0' : 'transparent'
                             }
-                            _hover={{ bg: isActive ? '#0f0708' : '#aabde4' }}
+                            _hover={{ bg: isActive ? 'fg.muted' : 'bg.muted' }}
                             transition="background 0.15s, color 0.15s"
                             textAlign="left"
                             w="full"
@@ -140,20 +154,11 @@ const Sidebar = () => {
                     icon={<MdLeaderboard />}
                     items={
                         trending?.length ? (
-                            trending?.map((t) => ({
-                                isActive: false,
-                                label: t.name,
-                                onClick: () => {
-                                    navigate({
-                                        to: '/$warehouseId',
-                                        params: { warehouseId: t.warehouseId },
-                                    })
-                                },
-                            }))
+                            toItems(trending)
                         ) : (
                             <EmptyState
-                                icon={<MdTrendingUp color="C6D2FF" size="48" />}
-                                title={'No popular warehouse'}
+                                icon={<MdTrendingUp color="fg" size="48" />}
+                                title="No popular warehouse"
                             />
                         )
                     }
@@ -164,20 +169,11 @@ const Sidebar = () => {
                     icon={<LuSparkles />}
                     items={
                         newest?.length ? (
-                            newest?.map((n) => ({
-                                isActive: false,
-                                label: n.name,
-                                onClick: () => {
-                                    navigate({
-                                        to: '/$warehouseId',
-                                        params: { warehouseId: n.warehouseId },
-                                    })
-                                },
-                            }))
+                            toItems(newest)
                         ) : (
                             <EmptyState
-                                icon={<LuSparkles color="C6D2FF" size="48" />}
-                                title={'No new additions'}
+                                icon={<LuSparkles color="fg" size="48" />}
+                                title="No new additions"
                             />
                         )
                     }
@@ -187,9 +183,10 @@ const Sidebar = () => {
             <Flex
                 as="button"
                 borderTop="1px solid"
-                borderColor="gray.200"
+                borderColor="border"
                 onClick={() => {
                     navigate({ to: '/settings' })
+                    setIsOpen(false)
                 }}
                 alignItems="center"
                 gap={3}
@@ -198,16 +195,16 @@ const Sidebar = () => {
                 mt="auto"
                 borderRadius="md"
                 cursor="pointer"
-                bg={active === 'Settings' ? '#000000' : 'transparent'}
-                color={active === 'Settings' ? '#ffffff' : '#111111'}
+                bg={active === 'Settings' ? 'fg' : 'transparent'}
+                color={active === 'Settings' ? 'bg' : 'fg'}
                 fontWeight={active === 'Settings' ? 'semibold' : 'medium'}
-                _hover={{ bg: active === 'Settings' ? '#0f0708' : '#aabde4' }}
+                _hover={{ bg: active === 'Settings' ? 'fg.muted' : 'bg.muted' }}
                 transition="background 0.15s, color 0.15s"
                 textAlign="left"
                 w="full"
             >
                 <LuSettings size={18} />
-                <Text fontSize="sm"> Settings</Text>
+                <Text fontSize="sm">Settings</Text>
             </Flex>
         </Flex>
     )
@@ -224,7 +221,6 @@ const Sidebar = () => {
                 display={{ base: 'flex', md: 'none' }}
                 size="md"
                 variant="outline"
-                bg="white"
             >
                 <LuMenu />
             </IconButton>
@@ -233,9 +229,8 @@ const Sidebar = () => {
                 as="nav"
                 display={{ base: 'none', md: 'flex' }}
                 w="240px"
-                bg="white"
                 borderRight="1px solid"
-                borderColor="gray.200"
+                borderColor="border"
                 h="100%"
             >
                 {sidebarContent}

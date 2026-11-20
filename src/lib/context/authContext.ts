@@ -26,6 +26,4 @@ export const authQueryOptions = queryOptions({
     retry: false,
 })
 
-export const AuthContext = createContext<AuthContextValue | undefined>(
-    undefined
-)
+export const AuthContext = createContext<AuthContextValue | null>(null)

@@ -188,8 +188,6 @@ const WarehousesPanel = ({ warehouses = [] }: Props) => {
                                                             aria-label="Next photo"
                                                             size="xs"
                                                             rounded="full"
-                                                            bg="white"
-                                                            color="gray.800"
                                                             boxShadow="sm"
                                                             _hover={{
                                                                 bg: 'gray.50',

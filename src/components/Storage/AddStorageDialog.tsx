@@ -1,3 +1,4 @@
+import { usePreferences } from '@/lib/hooks/usePreference'
 import { qk } from '@/lib/queryKeys'
 import type { StorageTypeResponse } from '@/types'
 import {
@@ -59,6 +60,7 @@ const AddStorageDialog = ({
     materialTypes,
     onSubmit,
 }: Props) => {
+    const { symbol } = usePreferences()
     const [form, setForm] = useState<FormState>(empty())
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [serverError, setServerError] = useState<string | null>(null)
@@ -358,7 +360,7 @@ const AddStorageDialog = ({
                                         required
                                     >
                                         <Field.Label>
-                                            Price per m³ (₱)
+                                            Price per m³ ({symbol})
                                         </Field.Label>
                                         <Input
                                             type="number"
@@ -435,7 +437,6 @@ const AddStorageDialog = ({
                             </Button>
                             <Button
                                 bg="black"
-                                color="white"
                                 _hover={{ bg: 'gray.800' }}
                                 onClick={submit}
                                 loading={mutation.isPending}

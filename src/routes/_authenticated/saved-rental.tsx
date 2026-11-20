@@ -1,5 +1,4 @@
 import EmptyState from '@/components/EmptyState'
-import type { Filters } from '@/components/Filter/Filter'
 import InfiniteScroll from '@/components/InfiniteScroll'
 import SearchBar from '@/components/SearchAdd'
 import Warehouse from '@/components/Warehouse/Warehouse'
@@ -8,7 +7,7 @@ import {
     saveWarehouse,
     unsaveWarehouse,
 } from '@/lib/api/savedwarehouse'
-import type { ApiError, WarehouseResponse } from '@/types'
+import type { ApiError, Filters, WarehouseResponse } from '@/types'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import {
     infiniteQueryOptions,

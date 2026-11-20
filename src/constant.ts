@@ -27,6 +27,10 @@ export const pageTitles: Record<string, { title: string; subtitle: string }> = {
         title: 'Settings',
         subtitle: 'Manage your account, notifications, and preferences',
     },
+    '/messages': {
+        title: 'Messages',
+        subtitle: 'Chat with warehouse owners and renters',
+    },
 }
 
 export const MATERIAL_TYPES = [
@@ -77,3 +81,6 @@ export const BookingStatus = {
 
 export type MaterialType = (typeof MATERIAL_TYPES)[number]
 export type BookingStatus = keyof typeof BookingStatus
+export const Currency = { PHP: 'PHP', USD: 'USD' } as const
+export type Currency = (typeof Currency)[keyof typeof Currency]
+export type Units = 'metric' | 'imperial'

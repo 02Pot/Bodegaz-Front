@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { LuFileText } from 'react-icons/lu'
 
 const EmptyState = ({
-    icon = <LuFileText size="48" style={{ color: '#C6D2FF' }} />,
+    icon = <LuFileText size="48" style={{ color: 'fg' }} />,
     title = 'No Data found',
     desc,
 }: {
@@ -15,7 +15,7 @@ const EmptyState = ({
         <Flex gap="8px" p="10px" flexDir="column" alignItems="center">
             <Box p="8px">{icon}</Box>
             <Text
-                color="#101828"
+                color="fg"
                 fontSize="14px"
                 fontFamily="Inter-Medium"
                 textAlign="center"
@@ -23,7 +23,7 @@ const EmptyState = ({
                 {title}
             </Text>
             <Text
-                color="#6A7282"
+                color="fg"
                 fontSize="14px"
                 fontFamily="Inter-Regular"
                 textAlign="center"

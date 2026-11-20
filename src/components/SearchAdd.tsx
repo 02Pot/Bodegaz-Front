@@ -33,7 +33,7 @@ const SearchBar = ({
     const isBuyer = currentUser?.userType === 'BUYER_ROLE'
 
     return (
-        <Flex gap="12px" wrap="wrap" align="center">
+        <Flex gap="12px" wrap="wrap" align="center" bg="bg.panel">
             {!isBuyer && (
                 <>
                     <IconButton

@@ -1,12 +1,11 @@
 import EmptyState from '@/components/EmptyState'
-import type { Filters } from '@/components/Filter/Filter'
 import InfiniteScroll from '@/components/InfiniteScroll'
 import RecentVisited from '@/components/Recent'
 import SearchBar from '@/components/SearchAdd'
 import Warehouse from '@/components/Warehouse/Warehouse'
 import { saveWarehouse, unsaveWarehouse } from '@/lib/api/savedwarehouse'
 import { getFeedWarehouses } from '@/lib/api/warehouse'
-import type { ApiError, WarehouseResponse } from '@/types'
+import type { ApiError, Filters, WarehouseResponse } from '@/types'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import {
     infiniteQueryOptions,
@@ -118,7 +117,7 @@ function RouteComponent() {
 
     return (
         <>
-            <Flex w="100%" height="100%" gap="12px">
+            <Flex w="100%" height="100%" gap="12px" align="flex-start">
                 <Box flex={'1'} minW={0}>
                     <SearchBar onSearch={setSearch} onFilters={setFilters} />
                     {errorMessage && (
@@ -126,15 +125,14 @@ function RouteComponent() {
                     )}
                     <Grid
                         alignContent="start"
-                        alignItems="start"
+                        alignItems="stretch"
                         templateColumns={
                             isEmpty
                                 ? '1fr'
                                 : 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))'
                         }
-                        rowGap={{ base: '12px', md: '8px' }}
-                        columnGap={{ base: '12px', md: '16px' }}
-                        padding={{ base: '12px 0px 0px', md: '24px 24px 0px' }}
+                        gap={{ base: '12px', md: '16px' }}
+                        pt={{ base: '12px', md: '20px' }}
                         opacity={isPlaceholderData ? 0.6 : 1}
                     >
                         {isLoading ? (
@@ -167,7 +165,15 @@ function RouteComponent() {
                     />
                 </Box>
 
-                <Box display={{ base: 'none', lg: 'block' }}>
+                <Box
+                    display={{ base: 'none', lg: 'block' }}
+                    w="280px"
+                    flexShrink={0}
+                    position="sticky"
+                    top="0"
+                    maxH="100vh"
+                    overflowY="auto"
+                >
                     <RecentVisited />
                 </Box>
             </Flex>

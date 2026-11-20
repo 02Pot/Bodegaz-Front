@@ -79,7 +79,7 @@ const ManageStorageDrawer = ({
 
                                 {storages.map((storage: StorageResponse) => (
                                     <Card.Root
-                                        key={storage.storageTypeId}
+                                        key={storage.storageId}
                                         size="sm"
                                     >
                                         <Card.Body>

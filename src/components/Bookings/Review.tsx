@@ -1,5 +1,6 @@
 import { BASE_URL, BookingStatus } from '@/constant'
 import { approveBooking, rejectBooking } from '@/lib/api/booking'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import type { OwnerBooking } from '@/types'
 import { fmtDate } from '@/utils/helpers'
 import {
@@ -34,6 +35,7 @@ const ReviewDialog = ({
     booking: OwnerBooking | null
     onClose: () => void
 }) => {
+    const { formatPrice, formatVolume, formatWeight } = usePreferences()
     const queryClient = useQueryClient()
     const [reason, setReason] = useState('')
 
@@ -144,15 +146,19 @@ const ReviewDialog = ({
                                     />
                                     <Field
                                         label="Amount"
-                                        value={`P ${booking.totalPrice.toLocaleString()}`}
+                                        value={formatPrice(booking.totalPrice)}
                                     />
                                     <Field
                                         label="Volume"
-                                        value={`${booking.rentedVolumeCubicMeter} m³`}
+                                        value={formatVolume(
+                                            booking.rentedVolumeCubicMeter
+                                        )}
                                     />
                                     <Field
                                         label="Weight"
-                                        value={`${booking.rentedWeightKg} kg`}
+                                        value={formatWeight(
+                                            booking.rentedWeightKg
+                                        )}
                                     />
                                 </SimpleGrid>
 

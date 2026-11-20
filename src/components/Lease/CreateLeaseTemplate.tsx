@@ -1,4 +1,5 @@
 import { createLeaseTemplate } from '@/lib/api/lease'
+import { usePreferences } from '@/lib/hooks/usePreference'
 import { defaultClauses, defaultConfig } from '@/lib/leaseDefaults'
 import { type LeaseClause, type LeaseTemplateConfig } from '@/types'
 import {
@@ -27,6 +28,7 @@ const CreateLeaseTemplate = ({
     open: boolean
     onClose: () => void
 }) => {
+    const { symbol } = usePreferences()
     const queryClient = useQueryClient()
     const [name, setName] = useState('')
     const [config, setConfig] = useState(defaultConfig)
@@ -178,7 +180,7 @@ const CreateLeaseTemplate = ({
                                                         Months of rent
                                                     </option>
                                                     <option value="FIXED">
-                                                        Fixed (₱)
+                                                        Fixed ({symbol})
                                                     </option>
                                                 </NativeSelect.Field>
                                             </NativeSelect.Root>
@@ -217,7 +219,7 @@ const CreateLeaseTemplate = ({
                                                         Percent
                                                     </option>
                                                     <option value="FIXED">
-                                                        Fixed (₱)
+                                                        Fixed ({symbol})
                                                     </option>
                                                 </NativeSelect.Field>
                                             </NativeSelect.Root>

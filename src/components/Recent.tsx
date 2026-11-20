@@ -1,95 +1,90 @@
+import { BASE_URL } from '@/constant'
+import { clearRecent, useRecent } from '@/lib/recent'
 import { Avatar, Box, Flex, Image, Text } from '@chakra-ui/react'
+import { useNavigate } from '@tanstack/react-router'
 
 const RecentVisited = () => {
+    const recent = useRecent()
+    const navigate = useNavigate()
+
     return (
         <Flex
-            overflowY="auto"
-            scrollbarWidth="thin"
             flexDir="column"
             gap="8px"
             p="12px"
-            borderRadius="md"
-            minW="20%"
+            borderRadius="lg"
+            borderWidth="2px"
+            borderStyle="solid"
+            boxShadow="sm"
+            bg="bg.panel"
+            w="100%"
         >
             <Flex justifyContent="space-between">
                 <Text fontSize="14px">Recent Visited</Text>
-                <Text fontSize="14px" color="#5b75c9">
+                <Text
+                    fontSize="14px"
+                    color="#5b75c9"
+                    cursor="pointer"
+                    onClick={clearRecent}
+                >
                     Clear
                 </Text>
             </Flex>
-            <Box bg="#c5c5c5" borderRadius="md" p="8px">
-                <Flex gap="8px" mb="6px">
-                    <Avatar.Root size="sm">
-                        <Avatar.Fallback name="Segun Adebayo" />
-                        <Avatar.Image src="https://bit.ly/sage-adebayo" />
-                    </Avatar.Root>
-                    <Box>
-                        <Text fontSize="12px">Warehouse Name</Text>
-                        <Text fontSize="12px">Warehouse Address</Text>
-                    </Box>
-                </Flex>
-                <Image
-                    borderRadius="md"
-                    w="100%"
-                    h="110px"
-                    src="https://picsum.photos/id/237/200/300"
-                />
-            </Box>
-            <Box bg="#c5c5c5" borderRadius="md" p="8px">
-                <Flex gap="8px" mb="6px">
-                    <Avatar.Root size="sm">
-                        <Avatar.Fallback name="Segun Adebayo" />
-                        <Avatar.Image src="https://bit.ly/sage-adebayo" />
-                    </Avatar.Root>
-                    <Box>
-                        <Text fontSize="12px">Warehouse Name</Text>
-                        <Text fontSize="12px">Warehouse Address</Text>
-                    </Box>
-                </Flex>
-                <Image
-                    borderRadius="md"
-                    w="100%"
-                    h="110px"
-                    src="https://picsum.photos/200/300?grayscale"
-                />
-            </Box>
 
-            <Box bg="#c5c5c5" borderRadius="md" p="8px">
-                <Flex gap="8px" mb="6px">
-                    <Avatar.Root size="sm">
-                        <Avatar.Fallback name="Segun Adebayo" />
-                        <Avatar.Image src="https://picsum.photos/200/300/?blur=5" />
-                    </Avatar.Root>
-                    <Box>
-                        <Text fontSize="12px">Warehouse Name</Text>
-                        <Text fontSize="12px">Warehouse Address</Text>
-                    </Box>
-                </Flex>
-                <Image
+            {recent.length === 0 && (
+                <Text fontSize="12px" color="gray.500">
+                    No recent visits
+                </Text>
+            )}
+
+            {recent.map((r) => (
+                <Box
+                    key={r.warehouseId}
+                    bg="bg.emphasized"
+                    borderWidth="2px"
+                    borderStyle="solid"
+                    boxShadow="sm"
                     borderRadius="md"
-                    w="100%"
-                    h="110px"
-                    src="https://picsum.photos/seed/picsum/200/300"
-                />
-            </Box>
-            <Box bg="#c5c5c5" borderRadius="md" p="8px">
-                <Flex gap="8px" mb="6px">
-                    <Avatar.Root size="sm">
-                        <Avatar.Fallback name="Segun Adebayo" />
-                        <Avatar.Image src="https://picsum.photos/200/300/?blur=5" />
-                    </Avatar.Root>
-                    <Box>
-                        <Text fontSize="12px">Warehouse Name</Text>
-                        <Text fontSize="12px">Warehouse Address</Text>
-                    </Box>
-                </Flex>
-                <Image
-                    borderRadius="md"
-                    w="100%"
-                    h="110px"
-                    src="https://picsum.photos/seed/picsum/200/300"
-                />
-            </Box>
+                    p="8px"
+                    cursor="pointer"
+                    transition="all 0.15s"
+                    _hover={{ bg: 'gray.100' }}
+                    onClick={() =>
+                        navigate({
+                            to: '/warehouse/$warehouseId',
+                            params: { warehouseId: r.warehouseId },
+                        })
+                    }
+                >
+                    <Flex gap="8px" mb="6px" align="center" minW={0}>
+                        <Avatar.Root size="sm" flexShrink={0}>
+                            <Avatar.Fallback name={r.name} />
+                            {r.imageUrl && (
+                                <Avatar.Image
+                                    src={`${BASE_URL}${r.imageUrl}`}
+                                />
+                            )}
+                        </Avatar.Root>
+                        <Box minW={0}>
+                            <Text fontSize="12px" fontWeight="600" truncate>
+                                {r.name}
+                            </Text>
+                            <Text fontSize="12px" color="fg" truncate>
+                                {r.address}
+                            </Text>
+                        </Box>
+                    </Flex>
+                    {r.imageUrl && (
+                        <Image
+                            borderRadius="md"
+                            w="100%"
+                            h="110px"
+                            objectFit="cover"
+                            src={`${BASE_URL}${r.imageUrl}`}
+                        />
+                    )}
+                </Box>
+            ))}
         </Flex>
     )
 }

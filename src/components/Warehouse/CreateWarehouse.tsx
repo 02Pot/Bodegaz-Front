@@ -111,7 +111,6 @@ const ImagePreviews = () => (
                                 position="absolute"
                                 top="1"
                                 right="1"
-                                bg="white"
                                 rounded="full"
                             />
                         </FileUpload.ItemDeleteTrigger>

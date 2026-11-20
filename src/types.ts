@@ -5,6 +5,8 @@ export interface User {
     email: string
     name: string
     userType: UserType
+    profilePicture?: string | null
+    contactNumber?: string | null
     isVerified: true
     isRegistered: true
 }
@@ -48,6 +50,7 @@ export interface WarehouseImageResponse {
 export interface WarehouseResponse {
     warehouseId: string
     name: string
+    email: string
     warehouseCapacityKg: number
     viewCount: number | null
     createdAt: string
@@ -98,11 +101,23 @@ export interface StorageResponse {
     blockName: string
     section: string | null
     maxWeight: number
-    isAvailable: boolean
     pricePerCubicMeter: number
     maxVolumeCubicMeter: number
     materialType: MaterialType
     storageTypeId: string
+    warehouseId: string
+}
+
+export interface StorageDetailedResponse {
+    storageId: string
+    blockName: string
+    section: string | null
+    maxWeight: number
+    pricePerCubicMeter: number
+    maxVolumeCubicMeter: number
+    materialType: MaterialType
+    availableVolume: number
+    availableWeight: number
     warehouseId: string
 }
 
@@ -278,6 +293,31 @@ export type Filters = {
     budget: Range
     sortOrder: 'newest' | 'oldest' | ''
     customDate: string
+}
+
+export interface ChatUser {
+    id: string
+    name: string
+    email: string
+    profilePicUrl: string | null
+}
+
+export interface ConversationResponse {
+    userId: string
+    name: string
+    email: string
+    profilePicUrl: string | null
+    lastMessage: string
+    lastMessageAt: string
+    unreadCount?: number
+}
+
+export interface ChatMessageResponse {
+    id: string
+    senderId: string
+    recipientId: string
+    content: string
+    createdAt: string
 }
 
 export type UserType = 'SELLER_ROLE' | 'BUYER_ROLE' | ''

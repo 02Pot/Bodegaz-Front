@@ -1,4 +1,6 @@
 import { BASE_URL } from '@/constant'
+import { usePreferences } from '@/lib/hooks/usePreference'
+import { addRecent } from '@/lib/recent'
 import type { WarehouseResponse } from '@/types'
 import {
     Box,
@@ -29,12 +31,11 @@ const Warehouse = ({
     toggleSave,
 }: WarehouseProps) => {
     const navigate = useNavigate()
-
+    const { formatWeight } = usePreferences()
     if (loading) {
         return (
             <Box
                 w="100%"
-                bg="white"
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="xl"
@@ -87,12 +88,12 @@ const Warehouse = ({
         <Flex
             w="100%"
             flexDir="column"
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
             borderRadius="xl"
+            borderWidth="2px"
+            borderStyle="solid"
             overflow="hidden"
             boxShadow="sm"
+            bg="bg.panel"
             transition="all 0.2s"
             _hover={{ boxShadow: 'md', transform: 'translateY(-2px)' }}
         >
@@ -139,8 +140,6 @@ const Warehouse = ({
                                     <IconButton
                                         size={{ base: 'xs', md: 'sm' }}
                                         rounded="full"
-                                        bg="white"
-                                        color="gray.800"
                                         boxShadow="sm"
                                         _hover={{
                                             bg: 'gray.50',
@@ -170,7 +169,6 @@ const Warehouse = ({
                     zIndex={2}
                     size={{ base: 'xs', md: 'sm' }}
                     rounded="full"
-                    bg="white"
                     boxShadow="sm"
                     _hover={{ bg: 'gray.50', transform: 'scale(1.1)' }}
                     transition="all 0.15s"
@@ -224,7 +222,7 @@ const Warehouse = ({
                             fontSize={{ base: 'sm', md: 'md' }}
                             fontWeight="600"
                         >
-                            {warehouse?.warehouseCapacityKg} KG
+                            {formatWeight(warehouse?.warehouseCapacityKg)}
                         </Text>
                     </Box>
                 </Flex>
@@ -242,8 +240,10 @@ const Warehouse = ({
                         size="sm"
                         whiteSpace="nowrap"
                         onClick={() => {
+                            if (!warehouse) return
+                            addRecent(warehouse)
                             navigate({
-                                to: '/$warehouseId',
+                                to: '/warehouse/$warehouseId',
                                 params: {
                                     warehouseId: warehouse?.warehouseId ?? '',
                                 },
@@ -253,7 +253,17 @@ const Warehouse = ({
                         Inspect Details
                     </Button>
 
-                    <Button flex="1" size="sm" whiteSpace="nowrap">
+                    <Button
+                        flex="1"
+                        size="sm"
+                        whiteSpace="nowrap"
+                        onClick={() =>
+                            navigate({
+                                to: '/messages',
+                                search: { to: warehouse?.email },
+                            })
+                        }
+                    >
                         Contact
                     </Button>
                 </Flex>

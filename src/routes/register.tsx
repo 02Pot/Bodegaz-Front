@@ -1,411 +1,435 @@
+import { AuthShell } from '@/components/AuthShell'
 import { register, sendOtp, verifyOtp } from '@/lib/api/auth'
-import { authQueryOptions } from '@/lib/provider'
-import type { ApiError, RegisterRequest, Step } from '@/types'
-import { validateEmail } from '@/utils/helpers'
+import { useAuth } from '@/lib/hooks/useAuth'
+import type { Step, UserType } from '@/types'
 import {
     Box,
     Button,
+    Link as ChakraLink,
     Field,
-    FileUpload,
     Flex,
-    Float,
     Heading,
+    HStack,
     Input,
     InputGroup,
-    PinInput,
-    RadioCard,
     Stack,
-    Steps,
     Text,
-    useFileUploadContext,
 } from '@chakra-ui/react'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
+import {
+    createFileRoute,
+    Link as RouterLink,
+    useNavigate,
+} from '@tanstack/react-router'
 import axios from 'axios'
-import { useState } from 'react'
-import { LuFileUp, LuUser, LuX } from 'react-icons/lu'
-import { MdEmail } from 'react-icons/md'
+import { useState, type FormEvent } from 'react'
+import {
+    LuArrowLeft,
+    LuLock,
+    LuMail,
+    LuPhone,
+    LuShoppingBag,
+    LuUser,
+    LuWarehouse,
+} from 'react-icons/lu'
 
 export const Route = createFileRoute('/register')({
-    beforeLoad: async ({ context }) => {
-        const currentUser = await context.queryClient.query(authQueryOptions)
-        if (currentUser) throw redirect({ to: '/' })
-    },
-    component: Register,
+    component: RegisterPage,
 })
 
-const FileUploadList = () => {
-    const fileUpload = useFileUploadContext()
-    const file = fileUpload.acceptedFiles
-    if (file.length === 0) return null
-    return (
-        <FileUpload.ItemGroup alignItems="center">
-            {file.map((file) => (
-                <FileUpload.Item
-                    borderRadius="full"
-                    boxSize="24"
-                    p="0"
-                    w="24"
-                    overflow="hidden"
-                    position="relative"
-                    border="1px solid gray.200"
-                    file={file}
-                    key={file.name}
-                >
-                    <Box boxSize="100%" rounded="full" overflow="hidden">
-                        <FileUpload.ItemPreviewImage
-                            boxSize="100%"
-                            objectFit="cover"
-                            rounded="full"
-                        />
-                    </Box>
+const STEPS: Step[] = ['info', 'otp', 'information']
 
-                    <Float placement="top-end" offset="2">
-                        <FileUpload.ItemDeleteTrigger
-                            boxSize="5"
-                            rounded="full"
-                            bg="white"
-                            boxShadow="sm"
-                            color="gray.800"
-                        >
-                            <LuX />
-                        </FileUpload.ItemDeleteTrigger>
-                    </Float>
-                </FileUpload.Item>
-            ))}
-        </FileUpload.ItemGroup>
-    )
+const TITLES: Record<Step, { title: string; sub: string }> = {
+    info: {
+        title: 'Create your account',
+        sub: 'Start by telling us who you are.',
+    },
+    otp: {
+        title: 'Verify your email',
+        sub: 'Enter the code we sent to your email.',
+    },
+    information: { title: 'Almost done', sub: 'Set up your account details.' },
 }
 
-const STEPS: Step[] = ['info', 'otp', 'information']
-const STEP_META = [
-    { title: 'Create Account', description: 'Enter your details' },
-    { title: 'Verify OTP', description: 'Confirm your email' },
-    { title: 'Set Profile Info', description: 'Set information' },
+const ROLES: {
+    value: UserType
+    title: string
+    desc: string
+    icon: typeof LuWarehouse
+}[] = [
+    {
+        value: 'BUYER_ROLE',
+        title: 'I need storage',
+        desc: 'Rent warehouse space',
+        icon: LuShoppingBag,
+    },
+    {
+        value: 'SELLER_ROLE',
+        title: 'I own a warehouse',
+        desc: 'List and manage units',
+        icon: LuWarehouse,
+    },
 ]
 
-function Register() {
+const errMsg = (e: unknown) =>
+    axios.isAxiosError<{ message?: string }>(e)
+        ? (e.response?.data?.message ?? 'Something went wrong')
+        : 'Something went wrong'
+
+function RegisterPage() {
     const navigate = useNavigate()
+    const { login } = useAuth()
+
     const [step, setStep] = useState<Step>('info')
-    const [data, setData] = useState<RegisterRequest>({
-        email: '',
-        name: '',
-        otp: '',
-        contactNumber: '',
-        userType: '',
-        password: '',
-    })
-    const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const stepIndex = STEPS.indexOf(step)
-    const [profileFile, setProfileFile] = useState<File | null>(null)
 
-    const update = (fields: Partial<RegisterRequest>) =>
-        setData((prev) => ({ ...prev, ...fields }))
+    const [name, setName] = useState('')
+    const [email, setEmail] = useState('')
+    const [otp, setOtp] = useState('')
+    const [contactNumber, setContactNumber] = useState('')
+    const [password, setPassword] = useState('')
+    const [confirm, setConfirm] = useState('')
+    const [userType, setUserType] = useState<UserType>('')
+    const [file, setFile] = useState<File | null>(null)
 
-    const goNext = (next: Step) => {
-        setError('')
+    const go = (next: Step) => {
+        setError(null)
         setStep(next)
     }
 
-    const handleSendOtp = async () => {
-        if (!data.email || !data.name) {
-            setError('Email and name are required')
-            return
-        }
-        if (!validateEmail(data.email)) {
-            setError('Please enter a valid email')
-            return
-        }
+    const sendOtpMut = useMutation({
+        mutationFn: () => sendOtp(name, email),
+        onSuccess: () => go('otp'),
+        onError: (e) => setError(errMsg(e)),
+    })
 
-        setError('')
-        setLoading(true)
+    const verifyMut = useMutation({
+        mutationFn: () => verifyOtp(email, otp),
+        onSuccess: () => go('information'),
+        onError: (e) => setError(errMsg(e)),
+    })
 
-        try {
-            await sendOtp(data.name, data.email)
-            update({ otp: '' })
-            goNext('otp')
-        } catch (err) {
-            if (axios.isAxiosError<ApiError>(err)) {
-                setError(err.response?.data?.message ?? 'Something went wrong')
+    const registerMut = useMutation({
+        mutationFn: () =>
+            register(email, contactNumber, password, userType, file),
+        onSuccess: async () => {
+            try {
+                await login({ email, password })
+                navigate({ to: '/' })
+            } catch {
+                navigate({ to: '/login' })
             }
-        } finally {
-            setLoading(false)
-        }
+        },
+        onError: (e) => setError(errMsg(e)),
+    })
+
+    const mismatch = confirm.length > 0 && password !== confirm
+
+    const canContinue =
+        step === 'info'
+            ? !!name.trim() && !!email.trim()
+            : step === 'otp'
+              ? otp.length >= 4
+              : !!userType &&
+                !!contactNumber &&
+                password.length >= 8 &&
+                password === confirm
+
+    const busy =
+        sendOtpMut.isPending || verifyMut.isPending || registerMut.isPending
+
+    const onSubmit = (e: FormEvent) => {
+        e.preventDefault()
+        setError(null)
+        if (step === 'info') sendOtpMut.mutate()
+        else if (step === 'otp') verifyMut.mutate()
+        else registerMut.mutate()
     }
 
-    const handleVerifyOtp = async () => {
-        if (data.otp.length !== 6) {
-            setError('Enter the 6-digit code')
-            return
-        }
-
-        setLoading(true)
-        setError('')
-
-        try {
-            const res = await verifyOtp(data.email, data.otp)
-            if (res.success && res.action === 'ONBOARD') {
-                goNext('information')
-            } else {
-                setError('Invalid or expired code')
-            }
-        } catch {
-            setError('Invalid or expired code')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const handleSubmit = async () => {
-        if (!data.userType) {
-            setError('Please select a role')
-            return
-        }
-        if (data.password.length < 8) {
-            setError('Password must be at least 8 characters')
-            return
-        }
-        setLoading(true)
-        try {
-            await register(
-                data.email,
-                data.contactNumber,
-                data.password,
-                data.userType,
-                profileFile
-            )
-            navigate({ to: '/' })
-        } catch {
-            setError('Registration failed. Try again.')
-        } finally {
-            setLoading(false)
-        }
-    }
+    const { title, sub } = TITLES[step]
+    const cta =
+        step === 'info'
+            ? 'Send code'
+            : step === 'otp'
+              ? 'Verify'
+              : 'Create account'
 
     return (
-        <Box
-            maxW="600px"
-            mx="auto"
-            mt={10}
-            p={6}
-            borderWidth="1px"
-            borderRadius="lg"
-        >
-            <Steps.Root step={stepIndex} count={STEPS.length}>
-                <Steps.List>
-                    {STEP_META.map((s, index) => (
-                        <Steps.Item key={index} index={index} title={s.title}>
-                            <Steps.Indicator />
-                            <Steps.Title>{s.title}</Steps.Title>
-                            <Steps.Separator />
-                        </Steps.Item>
-                    ))}
-                </Steps.List>
-            </Steps.Root>
-
-            {step === 'info' && (
-                <Stack gap={4} mt={6}>
-                    <Heading size="md">Create your account</Heading>
-                    <Field.Root>
-                        <Field.Label>Username</Field.Label>
-                        <InputGroup startElement={<LuUser />}>
-                            <Input
-                                value={data.name}
-                                onChange={(e) =>
-                                    update({ name: e.target.value })
+        <AuthShell imageSide="right" headline="List it. Rent it. Store it.">
+            <Box as="form" onSubmit={onSubmit}>
+                <Stack gap={6}>
+                    <HStack gap={2}>
+                        {STEPS.map((s, i) => (
+                            <Box
+                                key={s}
+                                flex="1"
+                                h="4px"
+                                rounded="full"
+                                bg={
+                                    i <= STEPS.indexOf(step)
+                                        ? 'blue.solid'
+                                        : 'bg.emphasized'
                                 }
-                                placeholder="Username"
                             />
-                        </InputGroup>
-                    </Field.Root>
-                    <Field.Root>
-                        <Field.Label>Email</Field.Label>
-                        <InputGroup startElement={<MdEmail />}>
-                            <Input
-                                type="email"
-                                value={data.email}
-                                onChange={(e) =>
-                                    update({ email: e.target.value })
-                                }
-                                placeholder="Email@example.com"
-                            />
-                        </InputGroup>
-                    </Field.Root>
-                    {error && (
-                        <Text color="red.500" fontSize="sm">
-                            {error}
+                        ))}
+                    </HStack>
+
+                    <Box>
+                        <Heading size="2xl" letterSpacing="-0.01em">
+                            {title}
+                        </Heading>
+                        <Text color="fg.muted" mt={1}>
+                            {sub}
                         </Text>
-                    )}
-                    <Flex justifyContent="space-around">
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate({ to: '/login' })}
+                    </Box>
+
+                    {error && (
+                        <Box
+                            role="alert"
+                            bg="red.subtle"
+                            color="red.fg"
+                            borderWidth="1px"
+                            borderColor="red.muted"
+                            rounded="lg"
+                            px={3}
+                            py={2}
+                            fontSize="sm"
                         >
-                            Go to login
-                        </Button>
-                        <Button onClick={handleSendOtp} loading={loading}>
-                            Continue
-                        </Button>
-                    </Flex>
-                </Stack>
-            )}
-
-            {step === 'otp' && (
-                <Stack gap={4} mt={6}>
-                    <Heading size="md">Verify your email</Heading>
-                    <Text fontSize="sm" color="gray.500">
-                        Code sent to {data.email}
-                    </Text>
-                    <PinInput.Root
-                        w="100%"
-                        px="10"
-                        value={Array.from(
-                            { length: 6 },
-                            (_, i) => data.otp[i] ?? ''
-                        )}
-                        onValueChange={(e) =>
-                            update({
-                                otp: e.value.map((v) => v ?? '').join(''),
-                            })
-                        }
-                        otp
-                        count={6}
-                        placeholder=""
-                    >
-                        <PinInput.HiddenInput />
-                        <PinInput.Control
-                            display="flex"
-                            justifyContent="center"
-                            gap="5"
-                            w="100%"
-                        >
-                            {[...Array(6)].map((_, i) => (
-                                <PinInput.Input
-                                    key={i}
-                                    index={i}
-                                    minW="0"
-                                    flex="1"
-                                    h="12"
-                                    fontSize="2xl"
-                                    fontWeight="semibold"
-                                    textAlign="center"
-                                />
-                            ))}
-                        </PinInput.Control>
-                    </PinInput.Root>
-                    {error && (
-                        <Text color="red.500" fontSize="sm">
                             {error}
-                        </Text>
-                    )}
-                    <Button onClick={handleVerifyOtp} loading={loading}>
-                        Verify
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleSendOtp}>
-                        Resend code
-                    </Button>
-                </Stack>
-            )}
-
-            {step === 'information' && (
-                <Stack gap={4} mt={6}>
-                    <Heading size="md">Set Profile Information</Heading>
-
-                    <FileUpload.Root
-                        gap="3"
-                        alignItems="center"
-                        maxFiles={1}
-                        accept={['image/jpeg', 'image/png', 'image/webp']}
-                        onFileChange={(d) =>
-                            setProfileFile(d.acceptedFiles[0] ?? null)
-                        }
-                    >
-                        <FileUpload.HiddenInput />
-                        <FileUpload.Label>
-                            Upload Profile Picture
-                        </FileUpload.Label>
-                        <FileUploadList />
-                        <FileUpload.Trigger asChild>
-                            <Button variant="outline" size="sm">
-                                <LuFileUp /> Choose file
-                            </Button>
-                        </FileUpload.Trigger>
-                    </FileUpload.Root>
-
-                    <Field.Root>
-                        <Field.Label>Phone Number</Field.Label>
-                        <Input
-                            value={data.contactNumber}
-                            onChange={(e) =>
-                                update({ contactNumber: e.target.value })
-                            }
-                            placeholder="Phone Number"
-                        />
-                    </Field.Root>
-                    {error && (
-                        <Text color="red.500" fontSize="sm">
-                            {error}
-                        </Text>
+                        </Box>
                     )}
 
-                    <Field.Root>
-                        <Field.Label>Password</Field.Label>
-                        <Input
-                            type="password"
-                            value={data.password}
-                            onChange={(e) =>
-                                update({ password: e.target.value })
-                            }
-                            placeholder="*******"
-                        />
-                    </Field.Root>
-                    {error && (
-                        <Text color="red.500" fontSize="sm">
-                            {error}
-                        </Text>
-                    )}
-
-                    <RadioCard.Root
-                        value={data.userType}
-                        onValueChange={(e) =>
-                            update({
-                                userType:
-                                    e.value as RegisterRequest['userType'],
-                            })
-                        }
-                    >
-                        <Stack gap={3}>
-                            <RadioCard.Item value="BUYER_ROLE">
-                                <RadioCard.ItemHiddenInput />
-                                <RadioCard.ItemControl>
-                                    <RadioCard.ItemText>
-                                        Buyer
-                                    </RadioCard.ItemText>
-                                    <RadioCard.ItemDescription>
-                                        Rent storage space from sellers
-                                    </RadioCard.ItemDescription>
-                                </RadioCard.ItemControl>
-                            </RadioCard.Item>
-
-                            <RadioCard.Item value="SELLER_ROLE">
-                                <RadioCard.ItemHiddenInput />
-                                <RadioCard.ItemControl>
-                                    <RadioCard.ItemText>
-                                        Seller
-                                    </RadioCard.ItemText>
-                                    <RadioCard.ItemDescription>
-                                        List warehouse space for rent
-                                    </RadioCard.ItemDescription>
-                                </RadioCard.ItemControl>
-                            </RadioCard.Item>
+                    {step === 'info' && (
+                        <Stack gap={4}>
+                            <Field.Root required>
+                                <Field.Label>Full name</Field.Label>
+                                <InputGroup startElement={<LuUser />}>
+                                    <Input
+                                        autoComplete="name"
+                                        placeholder="Gehrman Sparrow"
+                                        value={name}
+                                        onChange={(e) =>
+                                            setName(e.target.value)
+                                        }
+                                    />
+                                </InputGroup>
+                            </Field.Root>
+                            <Field.Root required>
+                                <Field.Label>Email</Field.Label>
+                                <InputGroup startElement={<LuMail />}>
+                                    <Input
+                                        type="email"
+                                        autoComplete="email"
+                                        placeholder="you@company.com"
+                                        value={email}
+                                        onChange={(e) =>
+                                            setEmail(e.target.value)
+                                        }
+                                    />
+                                </InputGroup>
+                            </Field.Root>
                         </Stack>
-                    </RadioCard.Root>
+                    )}
 
-                    <Button onClick={handleSubmit} loading={loading}>
-                        Create account
-                    </Button>
+                    {step === 'otp' && (
+                        <Stack gap={3}>
+                            <Text fontSize="sm" color="fg.muted">
+                                Sent to{' '}
+                                <Text as="span" fontWeight="medium" color="fg">
+                                    {email}
+                                </Text>
+                            </Text>
+                            <Field.Root required>
+                                <Field.Label>Verification code</Field.Label>
+                                <Input
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={6}
+                                    textAlign="center"
+                                    fontSize="2xl"
+                                    letterSpacing="0.5em"
+                                    placeholder="••••••"
+                                    value={otp}
+                                    onChange={(e) =>
+                                        setOtp(
+                                            e.target.value.replace(/\D/g, '')
+                                        )
+                                    }
+                                />
+                            </Field.Root>
+                            <Button
+                                type="button"
+                                variant="plain"
+                                size="sm"
+                                alignSelf="flex-start"
+                                loading={sendOtpMut.isPending}
+                                onClick={() => sendOtpMut.mutate()}
+                            >
+                                Resend code
+                            </Button>
+                        </Stack>
+                    )}
+
+                    {step === 'information' && (
+                        <Stack gap={4}>
+                            <Field.Root required>
+                                <Field.Label>I want to</Field.Label>
+                                <HStack gap={3} w="100%" align="stretch">
+                                    {ROLES.map(
+                                        ({
+                                            value,
+                                            title,
+                                            desc,
+                                            icon: Icon,
+                                        }) => {
+                                            const active = userType === value
+                                            return (
+                                                <Flex
+                                                    key={value}
+                                                    as="button"
+                                                    role="radio"
+                                                    aria-checked={active}
+                                                    onClick={() =>
+                                                        setUserType(value)
+                                                    }
+                                                    flex="1"
+                                                    direction="column"
+                                                    align="flex-start"
+                                                    gap={1}
+                                                    p={3}
+                                                    textAlign="left"
+                                                    rounded="lg"
+                                                    borderWidth="1px"
+                                                    borderColor={
+                                                        active
+                                                            ? 'blue.solid'
+                                                            : 'border'
+                                                    }
+                                                    bg={
+                                                        active
+                                                            ? 'blue.subtle'
+                                                            : 'transparent'
+                                                    }
+                                                >
+                                                    <Icon size={18} />
+                                                    <Text
+                                                        fontWeight="semibold"
+                                                        fontSize="sm"
+                                                    >
+                                                        {title}
+                                                    </Text>
+                                                    <Text
+                                                        fontSize="xs"
+                                                        color="fg.muted"
+                                                    >
+                                                        {desc}
+                                                    </Text>
+                                                </Flex>
+                                            )
+                                        }
+                                    )}
+                                </HStack>
+                            </Field.Root>
+
+                            <Field.Root required>
+                                <Field.Label>Contact number</Field.Label>
+                                <InputGroup startElement={<LuPhone />}>
+                                    <Input
+                                        type="tel"
+                                        autoComplete="tel"
+                                        placeholder="09XX XXX XXXX"
+                                        value={contactNumber}
+                                        onChange={(e) =>
+                                            setContactNumber(e.target.value)
+                                        }
+                                    />
+                                </InputGroup>
+                            </Field.Root>
+
+                            <Field.Root required>
+                                <Field.Label>Password</Field.Label>
+                                <InputGroup startElement={<LuLock />}>
+                                    <Input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder="At least 8 characters"
+                                        value={password}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
+                                    />
+                                </InputGroup>
+                            </Field.Root>
+
+                            <Field.Root required invalid={mismatch}>
+                                <Field.Label>Confirm password</Field.Label>
+                                <InputGroup startElement={<LuLock />}>
+                                    <Input
+                                        type="password"
+                                        autoComplete="new-password"
+                                        placeholder="Repeat your password"
+                                        value={confirm}
+                                        onChange={(e) =>
+                                            setConfirm(e.target.value)
+                                        }
+                                    />
+                                </InputGroup>
+                                <Field.ErrorText>
+                                    Passwords don’t match.
+                                </Field.ErrorText>
+                            </Field.Root>
+
+                            <Field.Root>
+                                <Field.Label>
+                                    Profile photo{' '}
+                                    <Text as="span" color="fg.muted">
+                                        (optional)
+                                    </Text>
+                                </Field.Label>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    p={1}
+                                    onChange={(e) =>
+                                        setFile(e.target.files?.[0] ?? null)
+                                    }
+                                />
+                            </Field.Root>
+                        </Stack>
+                    )}
+
+                    <Stack gap={3}>
+                        <Button
+                            type="submit"
+                            size="lg"
+                            loading={busy}
+                            disabled={!canContinue}
+                        >
+                            {cta}
+                        </Button>
+                        {step !== 'info' && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                    go(step === 'otp' ? 'info' : 'otp')
+                                }
+                            >
+                                <LuArrowLeft /> Back
+                            </Button>
+                        )}
+                    </Stack>
+
+                    <Text fontSize="sm" color="fg.muted" textAlign="center">
+                        Already have an account?{' '}
+                        <ChakraLink asChild fontWeight="semibold" color="fg">
+                            <RouterLink to="/login" viewTransition>
+                                Log in
+                            </RouterLink>
+                        </ChakraLink>
+                    </Text>
                 </Stack>
-            )}
-        </Box>
+            </Box>
+        </AuthShell>
     )
 }

@@ -16,7 +16,6 @@ export function Badge({ count }: { count: number }) {
             <FaBell color={'gray.750'} />
             <Box
                 as={'span'}
-                color={'white'}
                 position={'absolute'}
                 top={'6px'}
                 right={'4px'}

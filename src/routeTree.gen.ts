@@ -13,12 +13,13 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMyRentalRouteImport } from './routes/_authenticated/my-rental'
 import { Route as AuthenticatedSavedRentalRouteImport } from './routes/_authenticated/saved-rental'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSuppInqRouteImport } from './routes/_authenticated/supp-inq'
-import { Route as AuthenticatedWarehouseIdIndexRouteImport } from './routes/_authenticated/$warehouseId/index'
-import { Route as AuthenticatedWarehouseIdLeaseAgreeRouteImport } from './routes/_authenticated/$warehouseId/lease-agree'
+import { Route as AuthenticatedWarehouseWarehouseIdIndexRouteImport } from './routes/_authenticated/warehouse/$warehouseId/index'
+import { Route as AuthenticatedWarehouseWarehouseIdLeaseAgreeRouteImport } from './routes/_authenticated/warehouse/$warehouseId/lease-agree'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
     id: '/_authenticated',
@@ -37,6 +38,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
     getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMyRentalRoute = AuthenticatedMyRentalRouteImport.update({
@@ -60,16 +66,16 @@ const AuthenticatedSuppInqRoute = AuthenticatedSuppInqRouteImport.update({
     path: '/supp-inq',
     getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedWarehouseIdIndexRoute =
-    AuthenticatedWarehouseIdIndexRouteImport.update({
-        id: '/$warehouseId/',
-        path: '/$warehouseId/',
+const AuthenticatedWarehouseWarehouseIdIndexRoute =
+    AuthenticatedWarehouseWarehouseIdIndexRouteImport.update({
+        id: '/warehouse/$warehouseId/',
+        path: '/warehouse/$warehouseId/',
         getParentRoute: () => AuthenticatedRoute,
     } as any)
-const AuthenticatedWarehouseIdLeaseAgreeRoute =
-    AuthenticatedWarehouseIdLeaseAgreeRouteImport.update({
-        id: '/$warehouseId/lease-agree',
-        path: '/$warehouseId/lease-agree',
+const AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute =
+    AuthenticatedWarehouseWarehouseIdLeaseAgreeRouteImport.update({
+        id: '/warehouse/$warehouseId/lease-agree',
+        path: '/warehouse/$warehouseId/lease-agree',
         getParentRoute: () => AuthenticatedRoute,
     } as any)
 
@@ -77,36 +83,39 @@ export interface FileRoutesByFullPath {
     '/': typeof AuthenticatedIndexRoute
     '/login': typeof LoginRoute
     '/register': typeof RegisterRoute
+    '/messages': typeof AuthenticatedMessagesRoute
     '/my-rental': typeof AuthenticatedMyRentalRoute
     '/saved-rental': typeof AuthenticatedSavedRentalRoute
     '/settings': typeof AuthenticatedSettingsRoute
     '/supp-inq': typeof AuthenticatedSuppInqRoute
-    '/$warehouseId/lease-agree': typeof AuthenticatedWarehouseIdLeaseAgreeRoute
-    '/$warehouseId/': typeof AuthenticatedWarehouseIdIndexRoute
+    '/warehouse/$warehouseId/lease-agree': typeof AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute
+    '/warehouse/$warehouseId/': typeof AuthenticatedWarehouseWarehouseIdIndexRoute
 }
 export interface FileRoutesByTo {
     '/login': typeof LoginRoute
     '/register': typeof RegisterRoute
+    '/messages': typeof AuthenticatedMessagesRoute
     '/my-rental': typeof AuthenticatedMyRentalRoute
     '/saved-rental': typeof AuthenticatedSavedRentalRoute
     '/settings': typeof AuthenticatedSettingsRoute
     '/supp-inq': typeof AuthenticatedSuppInqRoute
     '/': typeof AuthenticatedIndexRoute
-    '/$warehouseId/lease-agree': typeof AuthenticatedWarehouseIdLeaseAgreeRoute
-    '/$warehouseId': typeof AuthenticatedWarehouseIdIndexRoute
+    '/warehouse/$warehouseId/lease-agree': typeof AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute
+    '/warehouse/$warehouseId': typeof AuthenticatedWarehouseWarehouseIdIndexRoute
 }
 export interface FileRoutesById {
     __root__: typeof rootRouteImport
     '/_authenticated': typeof AuthenticatedRouteWithChildren
     '/login': typeof LoginRoute
     '/register': typeof RegisterRoute
+    '/_authenticated/messages': typeof AuthenticatedMessagesRoute
     '/_authenticated/my-rental': typeof AuthenticatedMyRentalRoute
     '/_authenticated/saved-rental': typeof AuthenticatedSavedRentalRoute
     '/_authenticated/settings': typeof AuthenticatedSettingsRoute
     '/_authenticated/supp-inq': typeof AuthenticatedSuppInqRoute
     '/_authenticated/': typeof AuthenticatedIndexRoute
-    '/_authenticated/$warehouseId/lease-agree': typeof AuthenticatedWarehouseIdLeaseAgreeRoute
-    '/_authenticated/$warehouseId/': typeof AuthenticatedWarehouseIdIndexRoute
+    '/_authenticated/warehouse/$warehouseId/lease-agree': typeof AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute
+    '/_authenticated/warehouse/$warehouseId/': typeof AuthenticatedWarehouseWarehouseIdIndexRoute
 }
 export interface FileRouteTypes {
     fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,35 +123,38 @@ export interface FileRouteTypes {
         | '/'
         | '/login'
         | '/register'
+        | '/messages'
         | '/my-rental'
         | '/saved-rental'
         | '/settings'
         | '/supp-inq'
-        | '/$warehouseId/lease-agree'
-        | '/$warehouseId/'
+        | '/warehouse/$warehouseId/lease-agree'
+        | '/warehouse/$warehouseId/'
     fileRoutesByTo: FileRoutesByTo
     to:
         | '/login'
         | '/register'
+        | '/messages'
         | '/my-rental'
         | '/saved-rental'
         | '/settings'
         | '/supp-inq'
         | '/'
-        | '/$warehouseId/lease-agree'
-        | '/$warehouseId'
+        | '/warehouse/$warehouseId/lease-agree'
+        | '/warehouse/$warehouseId'
     id:
         | '__root__'
         | '/_authenticated'
         | '/login'
         | '/register'
+        | '/_authenticated/messages'
         | '/_authenticated/my-rental'
         | '/_authenticated/saved-rental'
         | '/_authenticated/settings'
         | '/_authenticated/supp-inq'
         | '/_authenticated/'
-        | '/_authenticated/$warehouseId/lease-agree'
-        | '/_authenticated/$warehouseId/'
+        | '/_authenticated/warehouse/$warehouseId/lease-agree'
+        | '/_authenticated/warehouse/$warehouseId/'
     fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,6 +193,13 @@ declare module '@tanstack/react-router' {
             preLoaderRoute: typeof AuthenticatedIndexRouteImport
             parentRoute: typeof AuthenticatedRoute
         }
+        '/_authenticated/messages': {
+            id: '/_authenticated/messages'
+            path: '/messages'
+            fullPath: '/messages'
+            preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+            parentRoute: typeof AuthenticatedRoute
+        }
         '/_authenticated/my-rental': {
             id: '/_authenticated/my-rental'
             path: '/my-rental'
@@ -209,42 +228,45 @@ declare module '@tanstack/react-router' {
             preLoaderRoute: typeof AuthenticatedSuppInqRouteImport
             parentRoute: typeof AuthenticatedRoute
         }
-        '/_authenticated/$warehouseId/': {
-            id: '/_authenticated/$warehouseId/'
-            path: '/$warehouseId'
-            fullPath: '/$warehouseId/'
-            preLoaderRoute: typeof AuthenticatedWarehouseIdIndexRouteImport
+        '/_authenticated/warehouse/$warehouseId/': {
+            id: '/_authenticated/warehouse/$warehouseId/'
+            path: '/warehouse/$warehouseId'
+            fullPath: '/warehouse/$warehouseId/'
+            preLoaderRoute: typeof AuthenticatedWarehouseWarehouseIdIndexRouteImport
             parentRoute: typeof AuthenticatedRoute
         }
-        '/_authenticated/$warehouseId/lease-agree': {
-            id: '/_authenticated/$warehouseId/lease-agree'
-            path: '/$warehouseId/lease-agree'
-            fullPath: '/$warehouseId/lease-agree'
-            preLoaderRoute: typeof AuthenticatedWarehouseIdLeaseAgreeRouteImport
+        '/_authenticated/warehouse/$warehouseId/lease-agree': {
+            id: '/_authenticated/warehouse/$warehouseId/lease-agree'
+            path: '/warehouse/$warehouseId/lease-agree'
+            fullPath: '/warehouse/$warehouseId/lease-agree'
+            preLoaderRoute: typeof AuthenticatedWarehouseWarehouseIdLeaseAgreeRouteImport
             parentRoute: typeof AuthenticatedRoute
         }
     }
 }
 
 interface AuthenticatedRouteChildren {
+    AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
     AuthenticatedMyRentalRoute: typeof AuthenticatedMyRentalRoute
     AuthenticatedSavedRentalRoute: typeof AuthenticatedSavedRentalRoute
     AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
     AuthenticatedSuppInqRoute: typeof AuthenticatedSuppInqRoute
     AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-    AuthenticatedWarehouseIdLeaseAgreeRoute: typeof AuthenticatedWarehouseIdLeaseAgreeRoute
-    AuthenticatedWarehouseIdIndexRoute: typeof AuthenticatedWarehouseIdIndexRoute
+    AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute: typeof AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute
+    AuthenticatedWarehouseWarehouseIdIndexRoute: typeof AuthenticatedWarehouseWarehouseIdIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+    AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
     AuthenticatedMyRentalRoute: AuthenticatedMyRentalRoute,
     AuthenticatedSavedRentalRoute: AuthenticatedSavedRentalRoute,
     AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
     AuthenticatedSuppInqRoute: AuthenticatedSuppInqRoute,
     AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-    AuthenticatedWarehouseIdLeaseAgreeRoute:
-        AuthenticatedWarehouseIdLeaseAgreeRoute,
-    AuthenticatedWarehouseIdIndexRoute: AuthenticatedWarehouseIdIndexRoute,
+    AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute:
+        AuthenticatedWarehouseWarehouseIdLeaseAgreeRoute,
+    AuthenticatedWarehouseWarehouseIdIndexRoute:
+        AuthenticatedWarehouseWarehouseIdIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
